@@ -5,6 +5,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
+import 'package:intl/intl.dart';
+import 'package:velocity_x/velocity_x.dart';
+
+import '../../utils/google-map.util.dart';
 
 class MapComponent extends StatelessWidget {
   const MapComponent({Key? key}) : super(key: key);
@@ -41,15 +45,20 @@ class MapSampleState extends State<MapSample> {
   LatLng _sourcePosition = LatLng(46.8122, -71.1836);
   LatLng _destinationPosition = LatLng(46.815412416445625, -71.18197316849692);
   List<LatLng> polylineCoordinates = [];
+  String startLatitude = "";
+  String startLongitude = "";
+  String endLatitude = "";
+  String endLongitude = "";
+  String distance = "00.00";
+  double price = 00.00;
 
-  //
   late TextEditingController _currentLocationController =
       TextEditingController(text: '');
-
   late TextEditingController _destinationController =
       TextEditingController(text: '');
 
-  //****************************************************************************
+  GoogleMapUtil googleMapUtil = GoogleMapUtil();
+
   currentLocationACPTextField() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -69,11 +78,13 @@ class MapSampleState extends State<MapSample> {
           "ci",
           "gm",
         ],
-        isLatLngRequired: false,
+        isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
-          print("placeDetails" + prediction.lat.toString());
+          setState(() {
+            startLatitude = prediction.lat!.toString();
+            startLongitude = prediction.lng!.toString();
+          });
         },
-
         itemClick: (Prediction prediction) {
           _currentLocationController.text = prediction.description ?? "";
           _currentLocationController.selection = TextSelection.fromPosition(
@@ -101,7 +112,6 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  //****************************************************************************
   destinationACPTextField() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -121,11 +131,13 @@ class MapSampleState extends State<MapSample> {
           "ci",
           "gm",
         ],
-        isLatLngRequired: false,
+        isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
-          print("placeDetails" + prediction.lat.toString());
+          setState(() {
+            endLatitude = prediction.lat!.toString();
+            endLongitude = prediction.lng!.toString();
+          });
         },
-
         itemClick: (Prediction prediction) {
           _destinationController.text = prediction.description ?? "";
           _destinationController.selection = TextSelection.fromPosition(
@@ -152,7 +164,64 @@ class MapSampleState extends State<MapSample> {
       ),
     );
   }
-  //****************************************************************************
+
+  String calculateDistanceBetweenPoints() {
+    if (startLatitude.isNotEmptyAndNotNull &&
+        startLongitude.isNotEmptyAndNotNull &&
+        endLatitude.isNotEmptyAndNotNull &&
+        endLongitude.isNotEmptyAndNotNull) {
+      setState(() {
+        distance = googleMapUtil
+            .distanceBetween(
+                double.parse(startLatitude),
+                double.parse(startLongitude),
+                double.parse(endLatitude),
+                double.parse(endLongitude))
+            .toString();
+        distance = convertMetersInKm(double.parse(distance)).toString();
+        calculatePrice();
+      });
+    }
+    return "Distance : " + distance + " KM";
+  }
+
+  double convertMetersInKm(double distanceInMeters) {
+    double distanceInKiloMeters = distanceInMeters / 1000;
+    return double.parse((distanceInKiloMeters).toStringAsFixed(2));
+  }
+
+  void calculatePrice() {
+    // Get the current date and time
+    DateTime now = DateTime.now();
+    print(now);
+    // Define the desired date and time format
+    //String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    //print(formattedDate);
+    //double price = 00.00;
+
+    String formattedHour = DateFormat('HH').format(now);
+    print(formattedHour);
+
+    if (int.parse(formattedHour) >= 8 && int.parse(formattedHour) <= 12) {
+      price = double.parse(distance) * 580.00;
+    }
+    if (int.parse(formattedHour) >= 13 && int.parse(formattedHour) <= 16) {
+      price = double.parse(distance) * 550.00;
+    }
+    if (int.parse(formattedHour) >= 16 && int.parse(formattedHour) <= 21) {
+      price = double.parse(distance) * 700.00;
+    }
+    if (int.parse(formattedHour) >= 21 && int.parse(formattedHour) <= 23) {
+      price = double.parse(distance) * 810.00;
+    }
+    if (int.parse(formattedHour) >= 0 && int.parse(formattedHour) <= 8) {
+      price = double.parse(distance) * 850.00;
+    }
+  }
+
+  String displayPrice(double price) {
+    return "Prix : " + price.toString();
+  }
 
   _getCurrentLocation() async {
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
@@ -182,54 +251,7 @@ class MapSampleState extends State<MapSample> {
     if (polylineResult.points.isNotEmpty) {
       polylineResult.points.forEach((PointLatLng point) =>
           polylineCoordinates.add(LatLng(point.latitude, point.longitude)));
-      setState(() {});
     }
-  }
-
-  Widget _buildCurrentLocation() {
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: TextFormField(
-        controller: _currentLocationController,
-        onChanged: (value) => _currentLocationController.text = value,
-        obscureText: false,
-        style: TextStyle(fontSize: 18),
-        decoration: const InputDecoration(
-          labelText: 'Départ',
-          hintText: 'Lieu de départ',
-          labelStyle: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-          ),
-        ),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        keyboardType: TextInputType.text,
-        //validator: (value) => _emailFieldValidation(value),
-      ),
-    );
-  }
-
-  Widget _buildDestination() {
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: TextFormField(
-        controller: _destinationController,
-        onChanged: (value) => _destinationController.text = value,
-        obscureText: false,
-        style: TextStyle(fontSize: 18),
-        decoration: const InputDecoration(
-          labelText: 'Arrivé',
-          hintText: 'Destination',
-          labelStyle: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-          ),
-        ),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        keyboardType: TextInputType.text,
-        //validator: (value) => _emailFieldValidation(value),
-      ),
-    );
   }
 
   Widget _launchOrderButton() {
@@ -270,7 +292,8 @@ class MapSampleState extends State<MapSample> {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     return Scaffold(
-        body: Stack(
+        body: SingleChildScrollView(
+            child: Column(
       children: [
         SafeArea(
           child: Align(
@@ -279,7 +302,7 @@ class MapSampleState extends State<MapSample> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white70,
+                  color: Colors.white,
                   borderRadius: BorderRadius.all(
                     Radius.circular(20.0),
                   ),
@@ -298,10 +321,23 @@ class MapSampleState extends State<MapSample> {
                       currentLocationACPTextField(),
                       SizedBox(height: 10),
                       destinationACPTextField(),
-                      //_buildCurrentLocation(),
-                      //SizedBox(height: 10),
-                      //_buildDestination(),
-                      SizedBox(height: 10),
+                      SizedBox(height: 12),
+                      Text(
+                        calculateDistanceBetweenPoints(),
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        displayPrice(price),
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 12),
                       _launchOrderButton(),
                     ],
                   ),
@@ -311,6 +347,6 @@ class MapSampleState extends State<MapSample> {
           ),
         ),
       ],
-    ));
+    )));
   }
 }
