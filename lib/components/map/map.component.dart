@@ -217,6 +217,18 @@ class MapSampleState extends State<MapSample> {
     if (int.parse(formattedHour) >= 0 && int.parse(formattedHour) <= 8) {
       price = double.parse(distance) * 850.00;
     }
+
+    // Convert the double to a string.
+    String stringValue = price.toString();
+    // Find the index of the decimal point.
+    int decimalIndex = stringValue.indexOf('.');
+    // If there is a decimal point, replace the characters after it with "00".
+    if (decimalIndex != -1) {
+      int charactersToReplace = stringValue.length - (decimalIndex + 1);
+      String newValue = stringValue.replaceRange(
+          decimalIndex + 1, decimalIndex + 1 + charactersToReplace, '00');
+      price = double.parse(newValue);
+    }
   }
 
   String displayPrice(double price) {
@@ -291,7 +303,46 @@ class MapSampleState extends State<MapSample> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
-    return Scaffold(
+
+    return Center(
+      child: SingleChildScrollView(
+          child: Center(
+              child: Center(
+        child: Column(
+          //mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              'Course',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            SizedBox(height: 10),
+            currentLocationACPTextField(),
+            SizedBox(height: 10),
+            destinationACPTextField(),
+            SizedBox(height: 12),
+            Text(
+              calculateDistanceBetweenPoints(),
+              style: TextStyle(
+                fontSize: 20.0,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              displayPrice(price),
+              style: TextStyle(
+                fontSize: 20.0,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 12),
+            _launchOrderButton(),
+          ],
+        ),
+      ))),
+    );
+
+    /*return Scaffold(
         body: SingleChildScrollView(
             child: Column(
       children: [
@@ -347,6 +398,6 @@ class MapSampleState extends State<MapSample> {
           ),
         ),
       ],
-    )));
+    )));*/
   }
 }
