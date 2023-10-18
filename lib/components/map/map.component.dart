@@ -193,14 +193,7 @@ class MapSampleState extends State<MapSample> {
   void calculatePrice() {
     // Get the current date and time
     DateTime now = DateTime.now();
-    print(now);
-    // Define the desired date and time format
-    //String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    //print(formattedDate);
-    //double price = 00.00;
-
     String formattedHour = DateFormat('HH').format(now);
-    print(formattedHour);
 
     if (int.parse(formattedHour) >= 8 && int.parse(formattedHour) <= 12) {
       price = double.parse(distance) * 580.00;
