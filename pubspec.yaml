@@ -57,6 +57,7 @@ dependencies:
   grouped_buttons_ns:
   dropdown_button2: ^2.1.4
   email_validator: '^2.1.16'
+  group_radio_button: ^1.3.0
 
 dev_dependencies:
   flutter_launcher_icons: "^0.13.1"

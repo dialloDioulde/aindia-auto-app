@@ -5,6 +5,7 @@
  */
 
 import 'dart:convert';
+import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -41,35 +42,39 @@ class MyStatefulWidget extends StatefulWidget {
 }
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
-  late TextEditingController _emailController = TextEditingController();
+  late TextEditingController _phoneNumberController = TextEditingController();
   late TextEditingController _passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   bool _formIsValid = false;
   bool _requestIsRunning = false;
 
-  Widget _buildEmail() {
+  Widget _buildPhoneNumber() {
     return Padding(
-        padding: const EdgeInsets.all(10),
-        child: TextFormField(
-            onChanged: (value) => _emailController.text = value,
-            decoration: const InputDecoration(
-              labelText: 'N° Téléphone',
-              hintText: 'Tapez votre numéro de tél...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-            ),
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: (value) => _emailFieldValidation(value)));
-  }
-
-  _emailFieldValidation(value) {
-    /*value = value!.trim()!;
-    if (!EmailValidator.validate(value!.toString().trim())) {
-      return 'Adresse email incorrecte';
-    }*/
-    return null;
+      padding: const EdgeInsets.all(6),
+      child: TextFormField(
+        controller: _phoneNumberController,
+        onChanged: (value) {
+          _phoneNumberController.text = value;
+        },
+        obscureText: false,
+        style: TextStyle(fontSize: 17),
+        decoration: const InputDecoration(
+          labelText: 'N° Téléphone',
+          hintText: 'Numéro Téléphone',
+          labelStyle: TextStyle(
+            fontSize: 17,
+            color: Colors.black,
+          ),
+        ),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        keyboardType: TextInputType.number,
+        validator: (value) => _phoneNumberFieldValidation(value),
+        onSaved: (value) {
+          _phoneNumberController = value! as TextEditingController;
+        },
+      ),
+    );
   }
 
   Widget _buildPassword() {
@@ -78,11 +83,13 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       child: TextFormField(
         onChanged: (value) => _passwordController.text = value,
         obscureText: true,
+        style: TextStyle(fontSize: 17),
         decoration: const InputDecoration(
           labelText: 'Mot de passe',
-          hintText: 'Tapez votre mot de passe...',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          hintText: 'Mot de passe',
+          labelStyle: TextStyle(
+            fontSize: 17,
+            color: Colors.black,
           ),
         ),
         autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -91,14 +98,25 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     );
   }
 
+  _phoneNumberFieldValidation(value) {
+    value = value!.trim()!;
+    if (value.isEmpty) {
+      return 'Ce champ est requis';
+    }
+    if (value.length != 9) {
+      return "Le numéro est composé de 9 chiffres";
+    }
+    return null;
+  }
+
   _passwordFieldValidation(value) {
-    /*value = value!.trim()!;
+    value = value!.trim()!;
     if (value.isEmpty) {
       return 'Ce champ est requis';
     }
     if (value.length < 8) {
       return 'Le mot de passe doit contenir au moins 8 caractères';
-    }*/
+    }
     return null;
   }
 
@@ -134,7 +152,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneNumberController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -150,20 +168,16 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       key: _formKey,
       child: Column(
         children: [
-          _buildEmail(),
+          _buildPhoneNumber(),
           const SizedBox(height: 8),
           _buildPassword(),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () {
-              userLoginAccount();
-            },
-            /*onPressed: _formIsValid && !_requestIsRunning
+            onPressed: _formIsValid && !_requestIsRunning
                 ? () {
-                    this._resetValidations(true);
                     userLoginAccount();
                   }
-                : null,*/
+                : null,
             child: const Text(
               'Se Connecter',
               style: TextStyle(
@@ -172,7 +186,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF223366),
+              backgroundColor: Colors.green,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               shape: RoundedRectangleBorder(
@@ -185,6 +199,20 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             onTap: () {},
             child: const Text(
               'Mot de passe oublier ? cliquer ici',
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 20),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Register()));
+            },
+            child: const Text(
+              "Pas encore inscrit ? Cliquer ici",
               style: TextStyle(
                   fontSize: 18,
                   color: Colors.black,
