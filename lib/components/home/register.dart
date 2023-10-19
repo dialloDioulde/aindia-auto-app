@@ -1,16 +1,17 @@
 /**
  * @created 17/10/2023 - 17:23
- * @project door_war_app
+ * @project aindia_auto_app
  * @author mamadoudiallo
  */
 
+import 'dart:convert';
+
 import 'package:aindia_auto_app/components/home/login.dart';
 import 'package:flutter/material.dart';
-import 'package:group_radio_button/group_radio_button.dart';
 import 'package:grouped_buttons_ns/grouped_buttons_ns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../map/map.component.dart';
+import '../../services/account.service.dart';
 
 class Register extends StatelessWidget {
   const Register({Key? key}) : super(key: key);
@@ -126,8 +127,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         obscureText: false,
         style: TextStyle(fontSize: 17),
         decoration: const InputDecoration(
-          labelText: 'N° Téléphone',
-          hintText: 'N° Tél',
+          labelText: 'Numéro Téléphone',
+          hintText: 'Numéro Téléphone',
           labelStyle: TextStyle(
             fontSize: 17,
             color: Colors.black,
@@ -271,13 +272,38 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
   void _registerAccount() async {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => MapComponent()));
+    this._resetValidations(true);
+    var data = {
+      'phoneNumber': _phoneNumberController.value.text,
+      'password': _passwordController.text,
+      'passwordConfirmation': _passwordConfirmationController.text,
+      'accountType': _accountType,
+    };
+    await AccountService().registerAccount(data).then((response) {
+      var body = jsonDecode(response.body);
+      print(body);
+      if (response.statusCode == 200) {
+        displayMessage('Compte créé avec succès', Colors.green);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Login()));
+      }
+      if (response.statusCode == 400) {
+        displayMessage('Numéro déjà utilisé par un autre compte', Colors.red);
+        this._resetValidations(false);
+      }
+      if (response.statusCode == 422) {
+        displayMessage('Erreur, les données sont invalides', Colors.red);
+        this._resetValidations(false);
+      }
+    }).catchError((error) {
+      this._resetValidations(false);
+      displayMessage('Une erreur du server est survenue', Colors.red);
+    });
   }
 
-  _resetValidations(bool requestIsRunning) {
+  _resetValidations(bool value) {
     setState(() {
-      _requestIsRunning = requestIsRunning;
+      _requestIsRunning = value;
     });
   }
 
@@ -318,10 +344,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       key: _formKey,
       child: Column(
         children: [
-          _buildLastname(),
+          /*_buildLastname(),
           const SizedBox(height: 4),
           _buildFirstname(),
-          const SizedBox(height: 4),
+          const SizedBox(height: 4),*/
           _buildPhoneNumber(),
           const SizedBox(height: 4),
           _buildPassword(),

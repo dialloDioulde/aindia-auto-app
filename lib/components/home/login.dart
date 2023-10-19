@@ -1,12 +1,11 @@
 /**
  * @created 14/10/2023 - 17:17
- * @project door_war_app
+ * @project aindia_auto_app
  * @author mamadoudiallo
  */
 
 import 'dart:convert';
 import 'package:aindia_auto_app/components/home/register.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:provider/provider.dart';
