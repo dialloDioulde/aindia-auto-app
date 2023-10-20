@@ -242,6 +242,8 @@ class MapSampleState extends State<MapSample> {
       setState(() {
         _currentPosition = location;
         print('CURRENT POS: $_currentPosition');
+        startLatitude = location.latitude.toString();
+        startLongitude = location.longitude.toString();
       });
     }).catchError((e) {
       print(e);
@@ -304,7 +306,6 @@ class MapSampleState extends State<MapSample> {
           child: Center(
               child: Center(
         child: Column(
-          //mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
               'Course',
