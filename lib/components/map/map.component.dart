@@ -4,7 +4,6 @@
  * @author mamadoudiallo
  */
 
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -14,7 +13,6 @@ import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:intl/intl.dart';
 import 'package:velocity_x/velocity_x.dart';
-
 import '../../utils/google-map.util.dart';
 
 class MapComponent extends StatelessWidget {
@@ -301,9 +299,6 @@ class MapSampleState extends State<MapSample> {
 
   @override
   Widget build(BuildContext context) {
-    var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
-
     return Center(
       child: SingleChildScrollView(
           child: Center(
@@ -341,63 +336,5 @@ class MapSampleState extends State<MapSample> {
         ),
       ))),
     );
-
-    /*return Scaffold(
-        body: SingleChildScrollView(
-            child: Column(
-      children: [
-        SafeArea(
-          child: Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(20.0),
-                  ),
-                ),
-                width: width * 0.9,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'Course',
-                        style: TextStyle(fontSize: 20.0),
-                      ),
-                      SizedBox(height: 10),
-                      currentLocationACPTextField(),
-                      SizedBox(height: 10),
-                      destinationACPTextField(),
-                      SizedBox(height: 12),
-                      Text(
-                        calculateDistanceBetweenPoints(),
-                        style: TextStyle(
-                          fontSize: 20.0,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        displayPrice(price),
-                        style: TextStyle(
-                          fontSize: 20.0,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      _launchOrderButton(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    )));*/
   }
 }
