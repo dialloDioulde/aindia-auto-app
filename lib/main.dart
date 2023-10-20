@@ -1,9 +1,11 @@
+import 'package:aindia_auto_app/services/socket/websocket.service.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:web_socket_channel/io.dart';
 
 import 'components/home/login.dart';
 
@@ -180,6 +182,10 @@ class _MyAppState extends State<MyApp> {
     });
   }*/
 
+  // Web Socket
+  WebSocketService webSocketService = WebSocketService();
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
   Future<bool> checkTokenStatus(String token) async {
     if (token == '') {
       return false;
@@ -191,8 +197,15 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    //loader();
     initializeDateFormatting();
+    // Web Socket
+    webSocketService.startWebSocket(channel);
+  }
+
+  @override
+  void dispose() {
+    webSocketService.closeWebSocket(channel);
+    super.dispose();
   }
 
   @override

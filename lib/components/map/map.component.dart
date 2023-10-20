@@ -13,6 +13,8 @@ import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:intl/intl.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'package:web_socket_channel/io.dart';
+import '../../services/socket/websocket.service.dart';
 import '../../utils/google-map.util.dart';
 
 class MapComponent extends StatelessWidget {
@@ -42,6 +44,10 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
+  // Web Socket
+  WebSocketService webSocketService = WebSocketService();
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
@@ -292,6 +298,8 @@ class MapSampleState extends State<MapSample> {
     super.initState();
     _getCurrentLocation();
     _getPolyPoints();
+    // Web Socket
+    webSocketService.sendMessageWebSocket(channel);
   }
 
   @override
