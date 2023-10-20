@@ -6,11 +6,9 @@
 
 import 'dart:convert';
 import 'package:aindia_auto_app/components/home/register.dart';
+import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../utils/shared-preferences.util.dart';
 import '../map/map.component.dart';
 
 class Login extends StatelessWidget {
@@ -41,6 +39,8 @@ class MyStatefulWidget extends StatefulWidget {
 }
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  AccountService accountService = AccountService();
+  SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
   late TextEditingController _phoneNumberController = TextEditingController();
   late TextEditingController _passwordController = TextEditingController();
 
@@ -119,14 +119,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     return null;
   }
 
-  late SharedPreferences preferences;
-
-  void userLoginAccount() async {
-    //
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => MapComponent()));
-  }
-
   _resetValidations(bool requestIsRunning) {
     setState(() {
       _requestIsRunning = requestIsRunning;
@@ -139,14 +131,31 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     );
   }
 
-  void initSharedPreferences() async {
-    preferences = await SharedPreferences.getInstance();
+  void userLoginAccount() async {
+    var data = {
+      'phoneNumber': _phoneNumberController.text,
+      'password': _passwordController.text
+    };
+    await accountService.loginAccount(data).then((response) async {
+      if (response.statusCode == 200) {
+        var resData = jsonDecode(response.body);
+        sharedPreferencesUtil.setLocalDataByKey("token", resData['token']);
+        displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => MapComponent()));
+      } else {
+        this._resetValidations(false);
+        displayMessage('Identifiants incorrects !', Colors.red);
+      }
+    }).catchError((error) {
+      this._resetValidations(false);
+      displayMessage('Une erreur est survenue !', Colors.red);
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    initSharedPreferences();
   }
 
   @override
