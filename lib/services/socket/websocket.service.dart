@@ -4,6 +4,8 @@
  * @author mamadoudiallo
  */
 
+import 'dart:convert';
+
 import 'package:web_socket_channel/io.dart';
 
 class WebSocketService {
@@ -16,12 +18,12 @@ class WebSocketService {
     channel.stream.listen((message) {});
   }
 
-  void sendMessageWebSocket(IOWebSocketChannel channel) {
+  void sendMessageWebSocket(IOWebSocketChannel channel, eventType, data) {
     final event = {
-      'type': 'test',
-      'data': "I'm a web socket test.",
+      'type': eventType,
+      'data': data,
     };
-    channel.sink.add(event.toString());
+    channel.sink.add(jsonEncode(event));
   }
 
   void closeWebSocket(IOWebSocketChannel channel) {

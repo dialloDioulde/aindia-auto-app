@@ -299,7 +299,7 @@ class MapSampleState extends State<MapSample> {
     _getCurrentLocation();
     _getPolyPoints();
     // Web Socket
-    webSocketService.sendMessageWebSocket(channel);
+    webSocketService.sendMessageWebSocket(channel, "test", true);
   }
 
   @override
