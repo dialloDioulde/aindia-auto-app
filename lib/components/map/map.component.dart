@@ -12,25 +12,19 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
+import '../../models/account.model.dart';
 import '../../services/socket/websocket.service.dart';
 import '../../utils/google-map.util.dart';
 
 class MapComponent extends StatelessWidget {
   const MapComponent({Key? key}) : super(key: key);
 
-  static const String _title = 'Aindia Auto';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(_title),
-          backgroundColor: Colors.green,
-          automaticallyImplyLeading: false,
-        ),
         body: const MapSample(),
         backgroundColor: Colors.white);
   }
@@ -44,6 +38,7 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
+  AccountModel accountModel = AccountModel('');
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
@@ -296,6 +291,8 @@ class MapSampleState extends State<MapSample> {
   @override
   void initState() {
     super.initState();
+    //accountModel = Provider.of<AccountModel>(context, listen: false);
+    //print(accountModel.toJson());
     _getCurrentLocation();
     _getPolyPoints();
     // Web Socket

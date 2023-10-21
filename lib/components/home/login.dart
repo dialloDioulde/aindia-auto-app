@@ -8,7 +8,8 @@ import 'dart:convert';
 import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
-import '../../utils/shared-preferences.util.dart';
+import '../../dashboard/dashboard.dart';
+import '../../utils/shared.preferences.util.dart';
 import '../map/map.component.dart';
 
 class Login extends StatelessWidget {
@@ -131,7 +132,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     );
   }
 
-  void userLoginAccount() async {
+  void _userLoginAccount() async {
     var data = {
       'phoneNumber': _phoneNumberController.text,
       'password': _passwordController.text
@@ -142,7 +143,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         sharedPreferencesUtil.setLocalDataByKey("token", resData['token']);
         displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => MapComponent()));
+            context, MaterialPageRoute(builder: (context) => Dashboard(selectedIndex: 1)));
       } else {
         this._resetValidations(false);
         displayMessage('Identifiants incorrects !', Colors.red);
@@ -183,7 +184,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           ElevatedButton(
             onPressed: _formIsValid && !_requestIsRunning
                 ? () {
-                    userLoginAccount();
+                    _userLoginAccount();
                   }
                 : null,
             child: const Text(

@@ -4,36 +4,27 @@
  * @author mamadoudiallo
  */
 
+import 'package:aindia_auto_app/components/home/login.dart';
+import 'package:aindia_auto_app/components/map/map.component.dart';
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import '../utils/auth.util.dart';
-import '../utils/shared-preferences.util.dart';
+import '../utils/shared.preferences.util.dart';
 
-
-class DashboardPage extends StatefulWidget {
+class Dashboard extends StatefulWidget {
   late int selectedIndex;
 
-  DashboardPage({required this.selectedIndex, Key? key})
-      : super(key: key);
+  Dashboard({required this.selectedIndex, Key? key}) : super(key: key);
 
   @override
-  State<DashboardPage> createState() => _EmployeeDashboardState();
+  State<Dashboard> createState() => _EmployeeDashboardState();
 }
 
-class _EmployeeDashboardState extends State<DashboardPage> {
+class _EmployeeDashboardState extends State<Dashboard> {
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
-  AuthUtil authUtil = AuthUtil();
+
   late String userId = '';
   late String email;
   late List userActivities = [];
-  String _title = 'Tableau de bord';
-
-  @override
-  void initState() {
-    super.initState();
-    initializeData();
-  }
+  String _title = 'Course';
 
   void _onItemTapped(int index) {
     setState(() {
@@ -42,19 +33,35 @@ class _EmployeeDashboardState extends State<DashboardPage> {
         _title = 'Tableau de bord';
       }
       if (widget.selectedIndex == 1) {
-        _title = 'Activités';
+        _title = 'Course';
       }
       if (widget.selectedIndex == 2) {
-        _title = 'Profile';
+        _title = 'Compte';
       }
     });
   }
 
+  void _logoutAccount() {
+    sharedPreferencesUtil.setLocalDataByKey('token', '');
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const Login()));
+  }
+
+  _displayComponentDynamically() {
+    if (widget.selectedIndex == 0) {}
+    if (widget.selectedIndex == 1) {
+      return MapComponent();
+    }
+    if (widget.selectedIndex == 2) {}
+  }
+
   initializeData() async {
-    String token = await authUtil.getToken();
-    Map<String, dynamic> jwtDecodedToken = JwtDecoder.decode(token);
-    email = jwtDecodedToken['email'];
-    userId = jwtDecodedToken['_id'];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeData();
   }
 
   @override
@@ -62,27 +69,27 @@ class _EmployeeDashboardState extends State<DashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(_title),
-              IconButton(
-                icon: Icon(
-                  Icons.logout,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                },
-              )
-            ],
-          )
-        ),
-        backgroundColor: HexColor("#223366"),
+            child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(_title),
+            IconButton(
+              icon: Icon(
+                Icons.logout,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                _logoutAccount();
+              },
+            )
+          ],
+        )),
+        backgroundColor: Colors.green,
         automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: null,
+        child: _displayComponentDynamically(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -93,14 +100,14 @@ class _EmployeeDashboardState extends State<DashboardPage> {
             label: 'Menu',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.task),
-            label: 'Activités',
+            icon: Icon(Icons.car_repair),
+            label: 'Course',
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.perm_identity,
             ),
-            label: 'Profile',
+            label: 'Compte',
           ),
         ],
         currentIndex: widget.selectedIndex,
