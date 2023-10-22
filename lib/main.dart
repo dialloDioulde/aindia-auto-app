@@ -96,8 +96,7 @@ class _MyAppState extends State<MyApp> {
                   );
                   return MultiProvider(
                     providers: [
-                      ChangeNotifierProvider<AccountModel>.value(
-                          value: accountModel),
+                      ChangeNotifierProvider(create: (_) => accountModel),
                     ],
                     child: MaterialApp(
                       title: 'Aindia Auto',

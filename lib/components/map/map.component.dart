@@ -5,6 +5,12 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:aindia_auto_app/models/map/map-position.model.dart';
+import 'package:aindia_auto_app/models/order/order.model.dart';
+import 'package:aindia_auto_app/services/order/order.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
@@ -16,7 +22,9 @@ import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import '../../models/account.model.dart';
+import '../../models/order/order-status.enum.dart';
 import '../../services/socket/websocket.service.dart';
+import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 
 class MapComponent extends StatelessWidget {
@@ -37,6 +45,14 @@ class Map extends StatefulWidget {
 
 class MapState extends State<Map> {
   AccountModel accountModel = AccountModel('');
+  OrderModel orderModel = OrderModel('');
+
+  GoogleMapUtil googleMapUtil = GoogleMapUtil();
+  DatesUtil datesUtil = DatesUtil();
+
+  OrderService orderService = OrderService();
+
+  OrderStatus orderStatus = OrderStatus();
 
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
@@ -50,11 +66,12 @@ class MapState extends State<Map> {
   LatLng _sourcePosition = LatLng(46.8122, -71.1836);
   LatLng _destinationPosition = LatLng(46.815412416445625, -71.18197316849692);
   List<LatLng> polylineCoordinates = [];
-  String startLatitude = "";
-  String startLongitude = "";
-  String endLatitude = "";
-  String endLongitude = "";
-  String distance = "00.00";
+
+  double? startLatitude;
+  double? startLongitude;
+  double? endLatitude;
+  double? endLongitude;
+  double distance = 00.00;
   double price = 00.00;
 
   late TextEditingController _currentLocationController =
@@ -62,7 +79,7 @@ class MapState extends State<Map> {
   late TextEditingController _destinationController =
       TextEditingController(text: '');
 
-  GoogleMapUtil googleMapUtil = GoogleMapUtil();
+  //late int distance;
 
   currentLocationACPTextField() {
     return Container(
@@ -85,9 +102,10 @@ class MapState extends State<Map> {
         ],
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
+          print("mamadou....");
           setState(() {
-            startLatitude = prediction.lat!.toString();
-            startLongitude = prediction.lng!.toString();
+            startLatitude = double.parse(prediction.lat!);
+            startLongitude = double.parse(prediction.lng!);
           });
         },
         itemClick: (Prediction prediction) {
@@ -139,8 +157,8 @@ class MapState extends State<Map> {
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
           setState(() {
-            endLatitude = prediction.lat!.toString();
-            endLongitude = prediction.lng!.toString();
+            endLatitude = double.parse(prediction.lat!);
+            endLongitude = double.parse(prediction.lng!);
           });
         },
         itemClick: (Prediction prediction) {
@@ -171,23 +189,18 @@ class MapState extends State<Map> {
   }
 
   String calculateDistanceBetweenPoints() {
-    if (startLatitude.isNotEmptyAndNotNull &&
-        startLongitude.isNotEmptyAndNotNull &&
-        endLatitude.isNotEmptyAndNotNull &&
-        endLongitude.isNotEmptyAndNotNull) {
+    if (startLatitude != null &&
+        startLongitude != null &&
+        endLatitude != null &&
+        endLongitude != null) {
       setState(() {
-        distance = googleMapUtil
-            .distanceBetween(
-                double.parse(startLatitude),
-                double.parse(startLongitude),
-                double.parse(endLatitude),
-                double.parse(endLongitude))
-            .toString();
-        distance = convertMetersInKm(double.parse(distance)).toString();
+        distance = googleMapUtil.distanceBetween(
+            startLatitude!, startLongitude!, endLatitude!, endLongitude!);
+        distance = convertMetersInKm(double.parse(distance.toString()));
         calculatePrice();
       });
     }
-    return "Distance : " + distance + " KM";
+    return "Distance : " + distance.toString() + " KM";
   }
 
   double convertMetersInKm(double distanceInMeters) {
@@ -201,19 +214,19 @@ class MapState extends State<Map> {
     String formattedHour = DateFormat('HH').format(now);
 
     if (int.parse(formattedHour) >= 8 && int.parse(formattedHour) <= 12) {
-      price = double.parse(distance) * 580.00;
+      price = double.parse(distance.toString()) * 580.00;
     }
     if (int.parse(formattedHour) >= 13 && int.parse(formattedHour) <= 16) {
-      price = double.parse(distance) * 550.00;
+      price = double.parse(distance.toString()) * 550.00;
     }
     if (int.parse(formattedHour) >= 16 && int.parse(formattedHour) <= 21) {
-      price = double.parse(distance) * 700.00;
+      price = double.parse(distance.toString()) * 700.00;
     }
     if (int.parse(formattedHour) >= 21 && int.parse(formattedHour) <= 23) {
-      price = double.parse(distance) * 810.00;
+      price = double.parse(distance.toString()) * 810.00;
     }
     if (int.parse(formattedHour) >= 0 && int.parse(formattedHour) <= 8) {
-      price = double.parse(distance) * 850.00;
+      price = double.parse(distance.toString()) * 850.00;
     }
 
     // Convert the double to a string.
@@ -242,8 +255,8 @@ class MapState extends State<Map> {
       setState(() {
         _currentPosition = location;
         print('CURRENT POS: $_currentPosition');
-        startLatitude = location.latitude.toString();
-        startLongitude = location.longitude.toString();
+        startLatitude = location.latitude;
+        startLongitude = location.longitude;
       });
     }).catchError((e) {
       print(e);
@@ -268,7 +281,9 @@ class MapState extends State<Map> {
 
   Widget _launchOrderButton() {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        _createOrder();
+      },
       child: const Text(
         'Commander',
         style: TextStyle(
@@ -287,9 +302,69 @@ class MapState extends State<Map> {
     );
   }
 
+  void _datesConfiguration() async {
+    tz.initializeTimeZones();
+    initializeDateFormatting("fr_FR", null);
+  }
+
+  void _createOrder() async {
+    //this._resetValidations(true);
+    MapPositionModel sourceLocation =
+        MapPositionModel(startLatitude, startLongitude);
+    MapPositionModel destinationLocation =
+        MapPositionModel(endLatitude, endLongitude);
+
+    String currentTime =
+        datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+    int datetime = datesUtil.convertDateTimeToMilliseconds(
+        currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+
+    this.orderModel = OrderModel('',
+        datetime: datetime,
+        sourceLocation: sourceLocation,
+        destinationLocation: destinationLocation,
+        distance: distance,
+        passenger: this.accountModel,
+        price: price,
+        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));
+
+    await orderService.createOrder(orderModel).then((response) {
+      if (response.statusCode == 200) {
+        var body = jsonDecode(response.body);
+        print(body);
+      }
+      if (response.statusCode == 422) {
+        displayMessage('Erreur lors du traitement de la requête', Colors.red);
+      }
+    }).catchError((error) {
+      this._resetValidations(false);
+      displayMessage('Une erreur du server est survenue', Colors.red);
+    });
+  }
+
+  displayMessage(String messageContent, backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(messageContent), backgroundColor: backgroundColor),
+    );
+  }
+
+  _resetValidations(bool value) {
+    setState(() {
+      //_requestIsRunning = value;
+    });
+  }
+
+  bool generalValidations() {
+    return startLatitude != null &&
+        startLongitude != null &&
+        endLatitude != null &&
+        endLongitude != null;
+  }
+
   @override
   void initState() {
     super.initState();
+    _datesConfiguration();
     accountModel = Provider.of<AccountModel>(context, listen: false);
     _getCurrentLocation();
     _getPolyPoints();
@@ -323,23 +398,25 @@ class MapState extends State<Map> {
             SizedBox(height: 10),
             destinationACPTextField(),
             SizedBox(height: 12),
-            Text(
-              calculateDistanceBetweenPoints(),
-              style: TextStyle(
-                fontSize: 20.0,
-                color: Colors.black,
+            if (generalValidations())
+              Text(
+                calculateDistanceBetweenPoints(),
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              displayPrice(price),
-              style: TextStyle(
-                fontSize: 20.0,
-                color: Colors.black,
+            if (generalValidations()) SizedBox(height: 12),
+            if (generalValidations())
+              Text(
+                displayPrice(price),
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            _launchOrderButton(),
+            if (generalValidations()) SizedBox(height: 12),
+            if (generalValidations()) _launchOrderButton(),
           ],
         ),
       ))),

@@ -4,6 +4,8 @@
  * @author mamadoudiallo
  */
 
+import 'dart:ffi';
+
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:flutter/cupertino.dart';
 import '../map/map-position.model.dart';
@@ -12,10 +14,10 @@ class OrderModel extends ChangeNotifier {
   String _id;
   int? datetime;
   MapPositionModel? destinationLocation;
-  int? distance;
+  double? distance;
   AccountModel? driver;
   AccountModel? passenger;
-  int? price;
+  double? price;
   MapPositionModel? sourceLocation;
   int? status;
 
@@ -55,11 +57,11 @@ class OrderModel extends ChangeNotifier {
     this.destinationLocation = destinationLocation;
   }
 
-  int? get getDistance {
+  double? get getDistance {
     return distance != null ? distance : -1;
   }
 
-  void setDistance(int distance) {
+  void setDistance(double distance) {
     this.distance = distance;
   }
 
@@ -79,11 +81,11 @@ class OrderModel extends ChangeNotifier {
     this.passenger = passenger;
   }
 
-  int? get getPrice {
+  double? get getPrice {
     return price != null ? price : -1;
   }
 
-  void setPrice(int price) {
+  void setPrice(double price) {
     this.price = price;
   }
 
