@@ -18,11 +18,7 @@ class WebSocketService {
     channel.stream.listen((message) {});
   }
 
-  void sendMessageWebSocket(IOWebSocketChannel channel, eventType, data) {
-    final event = {
-      'type': eventType,
-      'data': data,
-    };
+  void sendMessageWebSocket(IOWebSocketChannel channel, event) {
     channel.sink.add(jsonEncode(event));
   }
 

@@ -24,21 +24,20 @@ class MapComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: const MapSample(),
-        backgroundColor: Colors.white);
+    return Scaffold(body: const Map(), backgroundColor: Colors.white);
   }
 }
 
-class MapSample extends StatefulWidget {
-  const MapSample({super.key});
+class Map extends StatefulWidget {
+  const Map({super.key});
 
   @override
-  State<MapSample> createState() => MapSampleState();
+  State<Map> createState() => MapState();
 }
 
-class MapSampleState extends State<MapSample> {
+class MapState extends State<Map> {
   AccountModel accountModel = AccountModel('');
+
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
@@ -291,12 +290,15 @@ class MapSampleState extends State<MapSample> {
   @override
   void initState() {
     super.initState();
-    //accountModel = Provider.of<AccountModel>(context, listen: false);
-    //print(accountModel.toJson());
+    accountModel = Provider.of<AccountModel>(context, listen: false);
     _getCurrentLocation();
     _getPolyPoints();
     // Web Socket
-    webSocketService.sendMessageWebSocket(channel, "test", true);
+    final event = {
+      'action': "createRoom",
+      'roomId': accountModel.id,
+    };
+    webSocketService.sendMessageWebSocket(channel, event);
   }
 
   @override

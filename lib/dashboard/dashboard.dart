@@ -7,6 +7,10 @@
 import 'package:aindia_auto_app/components/home/login.dart';
 import 'package:aindia_auto_app/components/map/map.component.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:web_socket_channel/io.dart';
+import '../models/account.model.dart';
+import '../services/socket/websocket.service.dart';
 import '../utils/shared.preferences.util.dart';
 
 class Dashboard extends StatefulWidget {
@@ -19,6 +23,11 @@ class Dashboard extends StatefulWidget {
 }
 
 class _EmployeeDashboardState extends State<Dashboard> {
+  AccountModel accountModel = AccountModel('');
+  // Web Socket
+  WebSocketService webSocketService = WebSocketService();
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
 
   late String userId = '';
@@ -43,6 +52,12 @@ class _EmployeeDashboardState extends State<Dashboard> {
 
   void _logoutAccount() {
     sharedPreferencesUtil.setLocalDataByKey('token', '');
+    // Web Socket
+    final event = {
+      'action': "leaveRoom",
+      'roomId': accountModel.id,
+    };
+    webSocketService.sendMessageWebSocket(channel, event);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const Login()));
   }
@@ -56,6 +71,7 @@ class _EmployeeDashboardState extends State<Dashboard> {
   }
 
   initializeData() async {
+    accountModel = Provider.of<AccountModel>(context, listen: false);
   }
 
   @override
