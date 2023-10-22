@@ -280,8 +280,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       'accountType': _accountType,
     };
     await AccountService().registerAccount(data).then((response) {
-      var body = jsonDecode(response.body);
-      print(body);
       if (response.statusCode == 200) {
         displayMessage('Compte créé avec succès', Colors.green);
         Navigator.push(

@@ -13,7 +13,7 @@ enum UserStatusEnum {
 }
 
 class UserStatus {
-  String getUserRole(int? userStatusValue) {
+  String getAccountRole(int? userStatusValue) {
     var userRole = "";
     switch (userStatusValue) {
       case 1:
