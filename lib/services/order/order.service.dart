@@ -6,10 +6,10 @@
 
 import 'dart:convert';
 import 'package:aindia_auto_app/models/order/order.model.dart';
-import 'package:aindia_auto_app/utils/shared.preferences.util.dart';
+import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:http/http.dart' as http;
 
-import '../../utils/headers.header.dart.dart';
+import '../../utils/headers.header.dart';
 import '../../utils/router-api.constants.dart';
 
 class OrderService {

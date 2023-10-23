@@ -6,7 +6,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../utils/headers.header.dart.dart';
+import '../utils/headers.header.dart';
 import '../utils/router-api.constants.dart';
 
 class AccountService {
