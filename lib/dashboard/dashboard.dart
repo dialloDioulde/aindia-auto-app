@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:web_socket_channel/io.dart';
 import '../models/account.model.dart';
 import '../services/socket/websocket.service.dart';
-import '../utils/shared.preferences.util.dart';
+import '../utils/shared-preferences.util.dart';
 
 class Dashboard extends StatefulWidget {
   late int selectedIndex;

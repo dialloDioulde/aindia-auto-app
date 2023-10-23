@@ -6,7 +6,7 @@
 
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/socket/websocket.service.dart';
-import 'package:aindia_auto_app/utils/shared.preferences.util.dart';
+import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';

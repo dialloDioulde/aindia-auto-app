@@ -9,7 +9,7 @@ import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
 import '../../dashboard/dashboard.dart';
-import '../../utils/shared.preferences.util.dart';
+import '../../utils/shared-preferences.util.dart';
 import '../map/map.component.dart';
 
 class Login extends StatelessWidget {

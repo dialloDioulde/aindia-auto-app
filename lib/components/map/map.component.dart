@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:aindia_auto_app/models/map/map-position.model.dart';
@@ -18,7 +19,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import '../../models/account.model.dart';
@@ -27,28 +27,21 @@ import '../../services/socket/websocket.service.dart';
 import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 
-class MapComponent extends StatelessWidget {
-  const MapComponent({Key? key}) : super(key: key);
+
+class MapComponent extends StatefulWidget {
+  const MapComponent({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: const Map(), backgroundColor: Colors.white);
-  }
+  State<MapComponent> createState() => MapState();
 }
 
-class Map extends StatefulWidget {
-  const Map({super.key});
-
-  @override
-  State<Map> createState() => MapState();
-}
-
-class MapState extends State<Map> {
+class MapState extends State<MapComponent> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
 
   GoogleMapUtil googleMapUtil = GoogleMapUtil();
   DatesUtil datesUtil = DatesUtil();
+  SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
 
   OrderService orderService = OrderService();
 
@@ -74,18 +67,20 @@ class MapState extends State<Map> {
   double distance = 00.00;
   double price = 00.00;
 
-  late TextEditingController _currentLocationController =
+  late TextEditingController _sourceLocationController =
       TextEditingController(text: '');
   late TextEditingController _destinationController =
       TextEditingController(text: '');
 
-  //late int distance;
+  String _onTextChanged(fieldController) {
+    return fieldController.text;
+  }
 
   currentLocationACPTextField() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: GooglePlaceAutoCompleteTextField(
-        textEditingController: _currentLocationController,
+        textEditingController: _sourceLocationController,
         googleAPIKey: "AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E",
         inputDecoration: InputDecoration(
           hintText: "Départ",
@@ -102,15 +97,14 @@ class MapState extends State<Map> {
         ],
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
-          print("mamadou....");
           setState(() {
             startLatitude = double.parse(prediction.lat!);
             startLongitude = double.parse(prediction.lng!);
           });
         },
         itemClick: (Prediction prediction) {
-          _currentLocationController.text = prediction.description ?? "";
-          _currentLocationController.selection = TextSelection.fromPosition(
+          _sourceLocationController.text = prediction.description ?? "";
+          _sourceLocationController.selection = TextSelection.fromPosition(
               TextPosition(offset: prediction.description?.length ?? 0));
         },
         seperatedBuilder: Divider(),
@@ -308,7 +302,6 @@ class MapState extends State<Map> {
   }
 
   void _createOrder() async {
-    //this._resetValidations(true);
     MapPositionModel sourceLocation =
         MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
@@ -361,23 +354,55 @@ class MapState extends State<Map> {
         endLongitude != null;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _datesConfiguration();
-    accountModel = Provider.of<AccountModel>(context, listen: false);
+  _initializeData() async {
+    accountModel = await sharedPreferencesUtil.getAccountDataFromToken();
+    //accountModel = Provider.of<AccountModel>(context, listen: true);
+
+    // Map
     _getCurrentLocation();
     _getPolyPoints();
+
     // Web Socket
     final event = {
       'action': "createRoom",
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+
+    // Fields controller
+    _sourceLocationController.addListener(() {
+      final newText = _onTextChanged(_sourceLocationController);
+      if (newText.isEmptyOrNull) {
+        setState(() {
+          startLatitude = null;
+          startLongitude = null;
+        });
+        this.generalValidations();
+      }
+    });
+    _destinationController.addListener(() {
+      final newText = _onTextChanged(_destinationController);
+      if (newText.isEmptyOrNull) {
+        setState(() {
+          endLatitude = null;
+          endLongitude = null;
+        });
+        this.generalValidations();
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _datesConfiguration();
+    _initializeData();
   }
 
   @override
   void dispose() {
+    _sourceLocationController.dispose();
+    _destinationController.dispose();
     super.dispose();
   }
 
