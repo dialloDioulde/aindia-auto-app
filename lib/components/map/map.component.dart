@@ -27,7 +27,6 @@ import '../../services/socket/websocket.service.dart';
 import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 
-
 class MapComponent extends StatefulWidget {
   const MapComponent({super.key});
 
@@ -248,7 +247,6 @@ class MapState extends State<MapComponent> {
       LatLng location = LatLng(lat, long);
       setState(() {
         _currentPosition = location;
-        print('CURRENT POS: $_currentPosition');
         startLatitude = location.latitude;
         startLongitude = location.longitude;
       });

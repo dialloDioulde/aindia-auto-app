@@ -4,6 +4,7 @@
  * @author mamadoudiallo
  */
 
+import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/socket/websocket.service.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
@@ -12,9 +13,10 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
+import 'components/drawers/nav.drawer.dart';
 import 'components/home/login.dart';
-import 'dashboard/dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +32,21 @@ void main() async {
       const Locale('fr'),
     ],
     home: MyApp(token: token),
+    /*onGenerateRoute: (settings) {
+      print(settings);
+      if (settings.name == '/auto' && token.isNotEmpty) {
+        return MaterialPageRoute(builder: (context) => NavDrawer());
+      } else {
+        // Redirect to another route if the token is empty or not valid
+        return MaterialPageRoute(builder: (context) => Login());
+      }
+    },*/
+    /*routes: {
+      '/login': (context) => Login(),
+      //'/auto': (context) => NavDrawer(accountModel: accountModel),
+      '/auto': (context) => NavDrawer(),
+    },
+    initialRoute: '/auto',*/
   ));
 }
 
@@ -46,6 +63,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  AccountModel accountModel = AccountModel('');
+
+  SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
+
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
@@ -58,12 +79,15 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  _initializeData() async {
+    // Web Socket
+    webSocketService.startWebSocket(channel);
+  }
+
   @override
   void initState() {
     super.initState();
     initializeDateFormatting();
-    // Web Socket
-    webSocketService.startWebSocket(channel);
   }
 
   @override
@@ -74,6 +98,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    _initializeData();
+
     return FutureBuilder<bool>(
         future: checkTokenStatus(widget.token),
         builder: (context, snapshot) {
@@ -96,11 +122,14 @@ class _MyAppState extends State<MyApp> {
                   );
                   return MultiProvider(
                     providers: [
-                      ChangeNotifierProvider(create: (_) => accountModel),
+                      ChangeNotifierProvider(create: (context) => accountModel),
+                      //ChangeNotifierProvider(create: (_) => accountModel),
+                      //ChangeNotifierProvider<AccountModel>.value(value: accountModel),
                     ],
                     child: MaterialApp(
                       title: 'Aindia Auto',
-                      home: Dashboard(selectedIndex: 1),
+                      //home: NavDrawer(accountModel: accountModel),
+                      home: NavDrawer(),
                     ),
                   );
                 } else {

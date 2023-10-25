@@ -8,9 +8,8 @@ import 'dart:convert';
 import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
-import '../../dashboard/dashboard.dart';
 import '../../utils/shared-preferences.util.dart';
-import '../map/map.component.dart';
+import '../drawers/nav.drawer.dart';
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);
@@ -143,7 +142,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         sharedPreferencesUtil.setLocalDataByKey("token", resData['token']);
         displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Dashboard(selectedIndex: 1)));
+            context, MaterialPageRoute(builder: (context) => NavDrawer()));
       } else {
         this._resetValidations(false);
         displayMessage('Identifiants incorrects !', Colors.red);
