@@ -11,12 +11,15 @@ import 'package:http/http.dart' as http;
 
 import '../../utils/headers.header.dart';
 import '../../utils/router-api.constants.dart';
+import '../config/config.service.dart';
 
 class OrderService {
+  String apiUrl = ConfigService().apiUrl;
+
   Future<http.Response> createOrder(OrderModel orderModel) async {
     final token = await SharedPreferencesUtil().getToken();
     return await http.post(
-        Uri.parse(RouterApiConstants.apiURL + RouterApiConstants.createOrder),
+        Uri.parse(apiUrl + RouterApiConstants.createOrder),
         headers: HeadersHeaderDart.headersWithToken(token),
         body: jsonEncode(orderModel));
   }

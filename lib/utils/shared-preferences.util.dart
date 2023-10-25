@@ -38,4 +38,10 @@ class SharedPreferencesUtil {
       status: jwtDecodedToken['status'],
     );
   }
+
+  extractTokenData(token) async {
+    if (token != '') {
+      return await this.getAccountDataFromToken();
+    }
+  }
 }

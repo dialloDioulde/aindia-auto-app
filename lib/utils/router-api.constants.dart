@@ -5,7 +5,6 @@
  */
 
 class RouterApiConstants {
-  static const apiURL = 'http://10.0.2.2:3000/api';
   static const String registerAccount = '/register-account';
   static const String loginAccount = '/login-account';
   static const String createOrder = '/create-order';

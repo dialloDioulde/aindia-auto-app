@@ -9,6 +9,7 @@ import 'package:aindia_auto_app/components/map/map.component.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:web_socket_channel/io.dart';
+import '../components/drawers/nav.drawer.dart';
 import '../models/account.model.dart';
 import '../services/socket/websocket.service.dart';
 import '../utils/shared-preferences.util.dart';
@@ -63,7 +64,13 @@ class _EmployeeDashboardState extends State<Dashboard> {
   }
 
   _displayComponentDynamically() {
-    if (widget.selectedIndex == 0) {}
+    if (widget.selectedIndex == 0) {
+      /*Navigator.push(
+          context, MaterialPageRoute(builder: (context) =>  NavDrawer(accountModel: accountModel,)));*/
+      return; // NavDrawer();
+      /*Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const NavDrawer()));*/
+    }
     if (widget.selectedIndex == 1) {
       return MapComponent();
     }
