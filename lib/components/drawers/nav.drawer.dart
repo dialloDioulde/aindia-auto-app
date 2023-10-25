@@ -2,6 +2,7 @@ import 'package:aindia_auto_app/components/orders/list.order.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/io.dart';
 
+import '../../models/account-type.enum.dart';
 import '../../models/account.model.dart';
 import '../../services/socket/websocket.service.dart';
 import '../../utils/shared-preferences.util.dart';
@@ -17,6 +18,7 @@ class NavDrawer extends StatefulWidget {
 
 class _NavDrawerState extends State<NavDrawer> {
   AccountModel accountModel = AccountModel('');
+  AccountType accountType = AccountType();
 
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
@@ -27,7 +29,7 @@ class _NavDrawerState extends State<NavDrawer> {
   String _title = 'Taxi';
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+      TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
   void _onItemTapped(int index) {
     setState(() {
@@ -104,8 +106,14 @@ class _NavDrawerState extends State<NavDrawer> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text(accountModel.phoneNumber.toString()),
-              accountEmail: Text(""),
+              accountName: Text(
+                accountModel.phoneNumber.toString(),
+                style: optionStyle,
+              ),
+              accountEmail: Text(
+                accountType.getAccountTypeValue(accountModel.accountType),
+                style: optionStyle,
+              ),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 //backgroundImage: AssetImage('assets/images/dw-default.png'),
@@ -113,6 +121,7 @@ class _NavDrawerState extends State<NavDrawer> {
               decoration: BoxDecoration(color: Colors.green),
             ),
             ListTile(
+              leading: Icon(Icons.car_repair),
               title: const Text('Taxi'),
               selected: _selectedIndex == 0,
               onTap: () {
@@ -121,7 +130,8 @@ class _NavDrawerState extends State<NavDrawer> {
               },
             ),
             ListTile(
-              title: const Text('Mes Commandes'),
+              leading: Icon(Icons.list),
+              title: const Text('Commandes'),
               selected: _selectedIndex == 1,
               onTap: () {
                 _onItemTapped(1);
@@ -129,6 +139,7 @@ class _NavDrawerState extends State<NavDrawer> {
               },
             ),
             ListTile(
+              leading: Icon(Icons.account_circle_outlined),
               title: const Text('Compte'),
               selected: _selectedIndex == 2,
               onTap: () {

@@ -4,31 +4,30 @@
  * @author mamadoudiallo
  */
 
-
-enum UserStatusEnum {
+enum AccountStatusEnum {
   ACTIVATED,
   NOT_ACTIVATED,
   BANNED,
   SUSPENDED,
 }
 
-class UserStatus {
-  String getAccountRole(int? userStatusValue) {
-    var userRole = "";
-    switch (userStatusValue) {
+class AccountStatus {
+  String getAccountStatus(int accountStatusValue) {
+    var accountStatus = "";
+    switch (accountStatusValue) {
       case 1:
-        userRole = "Actif";
+        accountStatus = "Actif";
         break;
       case 2:
-        userRole = "Inactif";
+        accountStatus = "Inactif";
         break;
       case 3:
-        userRole = "Banni";
+        accountStatus = "Banni";
         break;
       case 4:
-        userRole = "Suspendu";
+        accountStatus = "Suspendu";
         break;
     }
-    return userRole;
+    return accountStatus;
   }
 }
