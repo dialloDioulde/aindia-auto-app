@@ -6,6 +6,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:aindia_auto_app/services/config/config.service.dart';
+import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -42,6 +44,9 @@ class MapState extends State<MapComponent> {
   DatesUtil datesUtil = DatesUtil();
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
 
+  Constants constants = Constants();
+
+  ConfigService configService = ConfigService();
   OrderService orderService = OrderService();
 
   OrderStatus orderStatus = OrderStatus();
@@ -54,7 +59,6 @@ class MapState extends State<MapComponent> {
       Completer<GoogleMapController>();
 
   GoogleMapController? mapController;
-  LatLng _currentPosition = LatLng(46.8122, -71.1836);
   LatLng _sourcePosition = LatLng(46.8122, -71.1836);
   LatLng _destinationPosition = LatLng(46.815412416445625, -71.18197316849692);
   List<LatLng> polylineCoordinates = [];
@@ -80,20 +84,14 @@ class MapState extends State<MapComponent> {
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: GooglePlaceAutoCompleteTextField(
         textEditingController: _sourceLocationController,
-        googleAPIKey: "AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E",
+        googleAPIKey: configService.googleApiKey,
         inputDecoration: InputDecoration(
           hintText: "Départ",
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
         ),
         debounceTime: 400,
-        countries: [
-          "sn",
-          "fr",
-          "ca",
-          "ci",
-          "gm",
-        ],
+        countries: constants.GOOGLE_MAP_COUNTRIES,
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
           setState(() {
@@ -133,20 +131,14 @@ class MapState extends State<MapComponent> {
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: GooglePlaceAutoCompleteTextField(
         textEditingController: _destinationController,
-        googleAPIKey: "AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E",
+        googleAPIKey: configService.googleApiKey,
         inputDecoration: InputDecoration(
           hintText: "Arrivé",
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
         ),
         debounceTime: 400,
-        countries: [
-          "sn",
-          "fr",
-          "ca",
-          "ci",
-          "gm",
-        ],
+        countries: constants.GOOGLE_MAP_COUNTRIES,
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: (Prediction prediction) {
           setState(() {
@@ -246,7 +238,6 @@ class MapState extends State<MapComponent> {
       double long = position.longitude;
       LatLng location = LatLng(lat, long);
       setState(() {
-        _currentPosition = location;
         startLatitude = location.latitude;
         startLongitude = location.longitude;
       });

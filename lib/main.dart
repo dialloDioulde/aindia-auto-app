@@ -4,8 +4,8 @@
  * @author mamadoudiallo
  */
 
-import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
+import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/services/socket/websocket.service.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,6 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import 'components/drawers/nav.drawer.dart';
 import 'components/home/login.dart';
@@ -21,6 +20,9 @@ import 'components/home/login.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final token = await SharedPreferencesUtil().getToken();
+
+  // Files env configuration
+  await ConfigService().loadConfig(envFileName: '.env.dev');
 
   runApp(MaterialApp(
     localizationsDelegates: [
@@ -32,21 +34,6 @@ void main() async {
       const Locale('fr'),
     ],
     home: MyApp(token: token),
-    /*onGenerateRoute: (settings) {
-      print(settings);
-      if (settings.name == '/auto' && token.isNotEmpty) {
-        return MaterialPageRoute(builder: (context) => NavDrawer());
-      } else {
-        // Redirect to another route if the token is empty or not valid
-        return MaterialPageRoute(builder: (context) => Login());
-      }
-    },*/
-    /*routes: {
-      '/login': (context) => Login(),
-      //'/auto': (context) => NavDrawer(accountModel: accountModel),
-      '/auto': (context) => NavDrawer(),
-    },
-    initialRoute: '/auto',*/
   ));
 }
 
@@ -128,7 +115,6 @@ class _MyAppState extends State<MyApp> {
                     ],
                     child: MaterialApp(
                       title: 'Aindia Auto',
-                      //home: NavDrawer(accountModel: accountModel),
                       home: NavDrawer(),
                     ),
                   );
