@@ -22,7 +22,7 @@ void main() async {
   final token = await SharedPreferencesUtil().getToken();
 
   // Files env configuration
-  await ConfigService().loadConfig(envFileName: '.env.dev');
+  await ConfigService().loadConfig(envFileName: '.env.production');
 
   runApp(MaterialApp(
     localizationsDelegates: [
