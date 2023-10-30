@@ -1,11 +1,33 @@
+/**
+ * @created 29/10/2023 - 16:10
+ * @project aindia_auto_app
+ * @author mamadoudiallo
+ */
+
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:aindia_auto_app/components/orders/list.order.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import '../../models/account-type.enum.dart';
 import '../../models/account.model.dart';
+import '../../models/driver-position/driver-position.model.dart';
+import '../../models/driver-position/driver-status.enum.dart';
+import '../../models/map/map-position.model.dart';
+import '../../services/config/config.service.dart';
+import '../../services/driver-position/driver-position.service.dart';
 import '../../services/socket/websocket.service.dart';
+import '../../utils/constants.dart';
+import '../../utils/dates/dates.util.dart';
+import '../../utils/google-map.util.dart';
 import '../../utils/shared-preferences.util.dart';
+import '../account/account.component.dart';
 import '../home/login.dart';
 import '../map/map.component.dart';
 
@@ -19,14 +41,26 @@ class NavDrawer extends StatefulWidget {
 class _NavDrawerState extends State<NavDrawer> {
   AccountModel accountModel = AccountModel('');
   AccountType accountType = AccountType();
+  MapPositionModel? positionModel;
 
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+  DriverPositionService driverPositionService = DriverPositionService();
+  ConfigService configService = ConfigService();
 
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
+  GoogleMapUtil googleMapUtil = GoogleMapUtil();
+  DatesUtil datesUtil = DatesUtil();
 
-  String _title = 'Taxi';
+  Constants constants = Constants();
+
+  DriverPositionStatus driverPositionStatus = DriverPositionStatus();
+
+  GoogleMapController? mapController;
+  StreamSubscription? positionStream;
+
+  String _title = 'Aindia Auto';
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
       TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
@@ -54,25 +88,89 @@ class _NavDrawerState extends State<NavDrawer> {
 
   _displayComponentDynamically() {
     if (_selectedIndex == 0) {
-      return MapComponent();
+      if (accountModel.accountType == 1) {
+        return MapComponent();
+      } else if (accountModel.accountType == 2) {
+        return AccountComponent();
+      } else {
+        return CircularProgressIndicator();
+      }
     }
     if (_selectedIndex == 1) {
       return ListOrder();
     }
     if (_selectedIndex == 2) {
-      //return AccountComponent();
+      return AccountComponent();
     }
   }
 
-  _initializeData() async {
+  _displayMessage(String messageContent, backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(messageContent), backgroundColor: backgroundColor),
+    );
+  }
+
+  Future<void> _initializeData() async {
+    //accountModel = await sharedPreferencesUtil.getAccountDataFromToken();
+    _datesConfiguration();
     var data = await sharedPreferencesUtil.getAccountDataFromToken();
     setState(() {
       accountModel = data;
     });
+    // Web Socket
+    final event = {
+      'action': "createRoom",
+      'roomId': accountModel.id,
+    };
+    webSocketService.sendMessageWebSocket(channel, event);
+    _initLocationService();
+  }
+
+  void _initLocationService() {
+    final LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+    );
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position? position) {
+          if (position != null) {
+            String currentTime =
+            datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+            int datetime = datesUtil.convertDateTimeToMilliseconds(
+                currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+            positionModel = MapPositionModel(position.latitude, position.longitude);
+            DriverPositionModel driverPositionModel = DriverPositionModel(
+                '',
+                datetime,
+                accountModel,
+                positionModel!,
+                driverPositionStatus
+                    .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE));
+
+            // Web Socket
+            final event = {
+              'action': "createRoom",
+              'roomId': accountModel.id,
+              'driverPosition': driverPositionModel,
+            };
+            webSocketService.sendMessageWebSocket(channel, event);
+          } else {
+            _displayMessage(
+                'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
+                Colors.red);
+          }
+        });
+  }
+
+  void _datesConfiguration() async {
+    tz.initializeTimeZones();
+    initializeDateFormatting("fr_FR", null);
   }
 
   void _logoutAccount(context) {
     sharedPreferencesUtil.setLocalDataByKey('token', '');
+    positionStream?.cancel();
     // Web Socket
     final event = {
       'action': "leaveRoom",
@@ -92,6 +190,7 @@ class _NavDrawerState extends State<NavDrawer> {
   @override
   void dispose() {
     super.dispose();
+    positionStream?.cancel();
   }
 
   @override
