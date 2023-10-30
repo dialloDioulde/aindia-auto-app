@@ -10,6 +10,7 @@ import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:aindia_auto_app/models/map/map-position.model.dart';
 import 'package:aindia_auto_app/models/order/order.model.dart';
@@ -330,11 +331,7 @@ class MapState extends State<MapComponent> {
     );
   }
 
-  _resetValidations(bool value) {
-    setState(() {
-      //_requestIsRunning = value;
-    });
-  }
+  _resetValidations(bool value) {}
 
   bool generalValidations() {
     return startLatitude != null &&
@@ -344,13 +341,11 @@ class MapState extends State<MapComponent> {
   }
 
   _initializeData() async {
-    accountModel = await sharedPreferencesUtil.getAccountDataFromToken();
-    //accountModel = Provider.of<AccountModel>(context, listen: true);
-
+    _datesConfiguration();
+    accountModel = Provider.of<AccountModel>(context, listen: false);
     // Map
-    _getCurrentLocation();
-    _getPolyPoints();
-
+    _getCurrentLocation(); // TODO
+    _getPolyPoints(); // TODO
     // Web Socket
     final event = {
       'action': "createRoom",
@@ -384,7 +379,6 @@ class MapState extends State<MapComponent> {
   @override
   void initState() {
     super.initState();
-    _datesConfiguration();
     _initializeData();
   }
 

@@ -5,11 +5,12 @@
  */
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:aindia_auto_app/components/orders/list.order.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -88,9 +89,11 @@ class _NavDrawerState extends State<NavDrawer> {
 
   _displayComponentDynamically() {
     if (_selectedIndex == 0) {
-      if (accountModel.accountType == 1) {
+      if (accountModel.accountType ==
+          accountType.accountTypeValue(AccountTypeEnum.PASSENGER)) {
         return MapComponent();
-      } else if (accountModel.accountType == 2) {
+      } else if (accountModel.accountType ==
+          accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
         return AccountComponent();
       } else {
         return CircularProgressIndicator();
@@ -111,11 +114,9 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   Future<void> _initializeData() async {
-    //accountModel = await sharedPreferencesUtil.getAccountDataFromToken();
     _datesConfiguration();
-    var data = await sharedPreferencesUtil.getAccountDataFromToken();
     setState(() {
-      accountModel = data;
+      accountModel = Provider.of<AccountModel>(context, listen: false);
     });
     // Web Socket
     final event = {
@@ -123,7 +124,11 @@ class _NavDrawerState extends State<NavDrawer> {
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-    _initLocationService();
+    if (accountModel.id.isNotEmptyAndNotNull &&
+        accountModel.getAccountType! ==
+            accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
+      _initLocationService();
+    }
   }
 
   void _initLocationService() {
@@ -134,33 +139,33 @@ class _NavDrawerState extends State<NavDrawer> {
     positionStream =
         Geolocator.getPositionStream(locationSettings: locationSettings)
             .listen((Position? position) {
-          if (position != null) {
-            String currentTime =
+      if (position != null) {
+        String currentTime =
             datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-            int datetime = datesUtil.convertDateTimeToMilliseconds(
-                currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-            positionModel = MapPositionModel(position.latitude, position.longitude);
-            DriverPositionModel driverPositionModel = DriverPositionModel(
-                '',
-                datetime,
-                accountModel,
-                positionModel!,
-                driverPositionStatus
-                    .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE));
+        int datetime = datesUtil.convertDateTimeToMilliseconds(
+            currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+        positionModel = MapPositionModel(position.latitude, position.longitude);
+        DriverPositionModel driverPositionModel = DriverPositionModel(
+            '',
+            datetime,
+            accountModel,
+            positionModel!,
+            driverPositionStatus
+                .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE));
 
-            // Web Socket
-            final event = {
-              'action': "createRoom",
-              'roomId': accountModel.id,
-              'driverPosition': driverPositionModel,
-            };
-            webSocketService.sendMessageWebSocket(channel, event);
-          } else {
-            _displayMessage(
-                'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
-                Colors.red);
-          }
-        });
+        // Web Socket
+        final event = {
+          'action': "createRoom",
+          'roomId': accountModel.id,
+          'driverPosition': driverPositionModel,
+        };
+        webSocketService.sendMessageWebSocket(channel, event);
+      } else {
+        _displayMessage(
+            'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
+            Colors.red);
+      }
+    });
   }
 
   void _datesConfiguration() async {

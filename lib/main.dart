@@ -69,12 +69,13 @@ class _MyAppState extends State<MyApp> {
   _initializeData() async {
     // Web Socket
     webSocketService.startWebSocket(channel);
+    initializeDateFormatting();
   }
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting();
+    _initializeData();
   }
 
   @override
@@ -85,8 +86,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    _initializeData();
-
     return FutureBuilder<bool>(
         future: checkTokenStatus(widget.token),
         builder: (context, snapshot) {
@@ -109,9 +108,8 @@ class _MyAppState extends State<MyApp> {
                   );
                   return MultiProvider(
                     providers: [
-                      ChangeNotifierProvider(create: (context) => accountModel),
-                      //ChangeNotifierProvider(create: (_) => accountModel),
-                      //ChangeNotifierProvider<AccountModel>.value(value: accountModel),
+                      ChangeNotifierProvider<AccountModel>(
+                          create: (context) => accountModel),
                     ],
                     child: MaterialApp(
                       title: 'Aindia Auto',
@@ -119,7 +117,17 @@ class _MyAppState extends State<MyApp> {
                     ),
                   );
                 } else {
-                  return const Login();
+                  return MultiProvider(
+                    providers: [
+                      /*ChangeNotifierProvider<AccountModel>(
+                          create: (context) => accountModel),*/
+                      ChangeNotifierProvider<AccountModel>.value(value: accountModel),
+                    ],
+                    child: MaterialApp(
+                      title: 'Connexion',
+                      home: const Login(),
+                    ),
+                  );
                 }
               } else {
                 return const Login();
