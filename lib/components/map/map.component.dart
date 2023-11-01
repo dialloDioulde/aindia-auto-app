@@ -397,13 +397,41 @@ class MapState extends State<MapComponent> {
     };
     webSocketService.sendMessageWebSocket(channel, event);
 
-    //
     // Listen to events from the WebSocket
     channel.stream.listen((message) {
       // Handle the incoming message here
-      print('Received: $message');
+      //print('Received: $message');
+      //var data = jsonDecode(message);
+      Map<String, dynamic> jsonData = jsonDecode(message);
+      // Use jsonData for your application logic
+      print(jsonData);
+      //print(jsonData["orderFinalData"]);
+      if (jsonData["action"]! == constants.ORDER_FROM_SERVER) {
+        print(jsonData["orderFinalData"]?["order"]);
+        print("----------------");
+        print(jsonData["orderFinalData"]?["nearestDrivers"]);
+        print("----------------");
+        print(jsonData["orderFinalData"]?["driverPositions"]);
+        print("----------------");
+        print(jsonData["orderFinalData"]?["status"]);
+        //var data = jsonDecode(message);
+        //print(data);
+        /*var action = message.action;
+        var order = message.order;
+        var nearestDrivers = message.nearestDrivers;
+        var driverPositions = message.driverPositions;
+        var status = message.status;
+        print(action);
+        print("----------------");
+        print(order.toJson());
+        print("----------------");
+        print(nearestDrivers?.toJson());
+        print("----------------");
+        print(driverPositions.toJson());
+        print("----------------");
+        print(status);*/
+      }
     });
-    //
 
     // Fields controller
     _sourceLocationController.addListener(() {
