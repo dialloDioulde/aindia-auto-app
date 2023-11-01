@@ -22,7 +22,7 @@ void main() async {
   final token = await SharedPreferencesUtil().getToken();
 
   // Files env configuration
-  await ConfigService().loadConfig(envFileName: '.env.production');
+  await ConfigService().loadConfig(envFileName: '.env.dev');
 
   runApp(MaterialApp(
     localizationsDelegates: [
@@ -119,9 +119,8 @@ class _MyAppState extends State<MyApp> {
                 } else {
                   return MultiProvider(
                     providers: [
-                      /*ChangeNotifierProvider<AccountModel>(
-                          create: (context) => accountModel),*/
-                      ChangeNotifierProvider<AccountModel>.value(value: accountModel),
+                      ChangeNotifierProvider<AccountModel>.value(
+                          value: accountModel),
                     ],
                     child: MaterialApp(
                       title: 'Connexion',
