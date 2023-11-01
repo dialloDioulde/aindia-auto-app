@@ -291,7 +291,51 @@ class MapState extends State<MapComponent> {
     initializeDateFormatting("fr_FR", null);
   }
 
+  //*******************************************************
   void _createOrder() async {
+    MapPositionModel sourceLocation =
+    MapPositionModel(startLatitude, startLongitude);
+    MapPositionModel destinationLocation =
+    MapPositionModel(endLatitude, endLongitude);
+
+    String currentTime =
+    datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+    int datetime = datesUtil.convertDateTimeToMilliseconds(
+        currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+
+    this.orderModel = OrderModel('',
+        datetime: datetime,
+        sourceLocation: sourceLocation,
+        destinationLocation: destinationLocation,
+        distance: distance,
+        passenger: this.accountModel,
+        price: price,
+        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));
+
+    // Web Socket
+    final event = {
+      'action': "createRoom",
+      'roomId': accountModel.id,
+      'order': orderModel,
+    };
+    webSocketService.sendMessageWebSocket(channel, event);
+
+    /*await orderService.createOrder(orderModel).then((response) {
+      if (response.statusCode == 200) {
+        var body = jsonDecode(response.body);
+        print(body);
+      }
+      if (response.statusCode == 422) {
+        displayMessage('Erreur lors du traitement de la requête', Colors.red);
+      }
+    }).catchError((error) {
+      this._resetValidations(false);
+      displayMessage('Une erreur du server est survenue', Colors.red);
+    });*/
+  }
+  //*******************************************************
+
+  /*void _createOrder() async {
     MapPositionModel sourceLocation =
         MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
@@ -323,7 +367,7 @@ class MapState extends State<MapComponent> {
       this._resetValidations(false);
       displayMessage('Une erreur du server est survenue', Colors.red);
     });
-  }
+  }*/
 
   displayMessage(String messageContent, backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -352,6 +396,14 @@ class MapState extends State<MapComponent> {
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+
+    //
+    // Listen to events from the WebSocket
+    channel.stream.listen((message) {
+      // Handle the incoming message here
+      print('Received: $message');
+    });
+    //
 
     // Fields controller
     _sourceLocationController.addListener(() {
@@ -386,6 +438,7 @@ class MapState extends State<MapComponent> {
   void dispose() {
     _sourceLocationController.dispose();
     _destinationController.dispose();
+    webSocketService.closeWebSocket(channel);
     super.dispose();
   }
 
