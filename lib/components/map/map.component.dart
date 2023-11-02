@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:aindia_auto_app/models/driver-position/driver-position.model.dart';
 import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
@@ -29,6 +30,7 @@ import '../../models/order/order-status.enum.dart';
 import '../../services/socket/websocket.service.dart';
 import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
+import '../card/order.driver.card.dart';
 
 class MapComponent extends StatefulWidget {
   const MapComponent({super.key});
@@ -70,6 +72,9 @@ class MapState extends State<MapComponent> {
   double? endLongitude;
   double distance = 00.00;
   double price = 00.00;
+
+  OrderModel orderCreated = OrderModel('');
+  DriverPositionModel? driverPositionModel;
 
   late TextEditingController _sourceLocationController =
       TextEditingController(text: '');
@@ -269,7 +274,7 @@ class MapState extends State<MapComponent> {
         _createOrder();
       },
       child: const Text(
-        'Commander',
+        'Rechercher',
         style: TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -294,12 +299,12 @@ class MapState extends State<MapComponent> {
   //*******************************************************
   void _createOrder() async {
     MapPositionModel sourceLocation =
-    MapPositionModel(startLatitude, startLongitude);
+        MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
-    MapPositionModel(endLatitude, endLongitude);
+        MapPositionModel(endLatitude, endLongitude);
 
     String currentTime =
-    datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+        datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
     int datetime = datesUtil.convertDateTimeToMilliseconds(
         currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
 
@@ -319,63 +324,13 @@ class MapState extends State<MapComponent> {
       'order': orderModel,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-
-    /*await orderService.createOrder(orderModel).then((response) {
-      if (response.statusCode == 200) {
-        var body = jsonDecode(response.body);
-        print(body);
-      }
-      if (response.statusCode == 422) {
-        displayMessage('Erreur lors du traitement de la requête', Colors.red);
-      }
-    }).catchError((error) {
-      this._resetValidations(false);
-      displayMessage('Une erreur du server est survenue', Colors.red);
-    });*/
   }
-  //*******************************************************
-
-  /*void _createOrder() async {
-    MapPositionModel sourceLocation =
-        MapPositionModel(startLatitude, startLongitude);
-    MapPositionModel destinationLocation =
-        MapPositionModel(endLatitude, endLongitude);
-
-    String currentTime =
-        datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-    int datetime = datesUtil.convertDateTimeToMilliseconds(
-        currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-
-    this.orderModel = OrderModel('',
-        datetime: datetime,
-        sourceLocation: sourceLocation,
-        destinationLocation: destinationLocation,
-        distance: distance,
-        passenger: this.accountModel,
-        price: price,
-        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));
-
-    await orderService.createOrder(orderModel).then((response) {
-      if (response.statusCode == 200) {
-        var body = jsonDecode(response.body);
-        print(body);
-      }
-      if (response.statusCode == 422) {
-        displayMessage('Erreur lors du traitement de la requête', Colors.red);
-      }
-    }).catchError((error) {
-      this._resetValidations(false);
-      displayMessage('Une erreur du server est survenue', Colors.red);
-    });
-  }*/
 
   displayMessage(String messageContent, backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(messageContent), backgroundColor: backgroundColor),
     );
   }
-
-  _resetValidations(bool value) {}
 
   bool generalValidations() {
     return startLatitude != null &&
@@ -398,40 +353,12 @@ class MapState extends State<MapComponent> {
     webSocketService.sendMessageWebSocket(channel, event);
 
     // Listen to events from the WebSocket
-    channel.stream.listen((message) {
-      // Handle the incoming message here
-      //print('Received: $message');
-      //var data = jsonDecode(message);
+    /*channel.stream.listen((message) {
       Map<String, dynamic> jsonData = jsonDecode(message);
-      // Use jsonData for your application logic
-      print(jsonData);
-      //print(jsonData["orderFinalData"]);
-      if (jsonData["action"]! == constants.ORDER_FROM_SERVER) {
-        print(jsonData["orderFinalData"]?["order"]);
-        print("----------------");
-        print(jsonData["orderFinalData"]?["nearestDrivers"]);
-        print("----------------");
-        print(jsonData["orderFinalData"]?["driverPositions"]);
-        print("----------------");
-        print(jsonData["orderFinalData"]?["status"]);
-        //var data = jsonDecode(message);
-        //print(data);
-        /*var action = message.action;
-        var order = message.order;
-        var nearestDrivers = message.nearestDrivers;
-        var driverPositions = message.driverPositions;
-        var status = message.status;
-        print(action);
-        print("----------------");
-        print(order.toJson());
-        print("----------------");
-        print(nearestDrivers?.toJson());
-        print("----------------");
-        print(driverPositions.toJson());
-        print("----------------");
-        print(status);*/
+      if (jsonData["action"]! == constants.ORDER_FROM_SERVER &&
+
       }
-    });
+    });*/
 
     // Fields controller
     _sourceLocationController.addListener(() {
@@ -496,16 +423,45 @@ class MapState extends State<MapComponent> {
                 ),
               ),
             if (generalValidations()) SizedBox(height: 12),
-            if (generalValidations())
+            /*if (generalValidations())
               Text(
                 displayPrice(price),
                 style: TextStyle(
                   fontSize: 20.0,
                   color: Colors.black,
                 ),
-              ),
-            if (generalValidations()) SizedBox(height: 12),
+              ),*/
+            //if (generalValidations()) SizedBox(height: 12),
             if (generalValidations()) _launchOrderButton(),
+            StreamBuilder(
+              stream: channel.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  var jsonData = jsonDecode(snapshot.data);
+
+                  List dataList = [];
+
+                  if (jsonData['orderFinalData'] != null &&
+                      jsonData['status'] == 1) {
+                    /*jsonData['orderFinalData'].map((value) {
+                      print(value);
+                      //dataList.add(value);
+                    });*/
+
+                    for (var obj in jsonData['orderFinalData']) {
+                      dataList.add(obj);
+                    }
+
+                    return OrderDriver(data: dataList);
+                  }
+                  return Text('Received: $jsonData');
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  return Text('Waiting for data...');
+                }
+              },
+            ),
           ],
         ),
       ))),
