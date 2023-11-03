@@ -46,7 +46,7 @@ class _OrderDriverState extends State<OrderDriver> {
   }
 
   Widget cardTemplate(element) {
-    print(element['driverPosition']);
+    print(element);
     final order = element['order'];
     final driverPosition = element['driverPosition'];
     final driver = element['driverPosition']['driver'];
@@ -65,7 +65,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'Nom',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
@@ -73,7 +73,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'DIALLO Mamadou',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     ))
@@ -86,7 +86,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'Statut',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
@@ -94,7 +94,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'Disponible',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.green,
                       ),
                     )),
@@ -107,7 +107,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'Prix',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
@@ -115,7 +115,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       element['price'].toString() + ' F CFA',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
@@ -128,7 +128,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       'Distance entre vous',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
@@ -136,7 +136,7 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       element['dFOSourceLocation'].toString() + ' KM',
                       style: TextStyle(
-                        fontSize: 15.0,
+                        fontSize: 16.0,
                         color: Colors.black,
                       ),
                     )),
