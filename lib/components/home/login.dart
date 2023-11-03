@@ -6,10 +6,12 @@
 
 import 'dart:convert';
 import 'package:aindia_auto_app/components/home/register.dart';
+import 'package:aindia_auto_app/components/identity/identity.component.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/account-type.enum.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
 
@@ -41,6 +43,8 @@ class MyStatefulWidget extends StatefulWidget {
 }
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  AccountType accountType = AccountType();
+
   AccountService accountService = AccountService();
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
   late TextEditingController _phoneNumberController = TextEditingController();
@@ -142,10 +146,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       if (response.statusCode == 200) {
         var resData = jsonDecode(response.body);
         sharedPreferencesUtil.setLocalDataByKey("token", resData['token']);
-        Provider.of<AccountModel>(context, listen: false).updateAccountData(resData);
+        Provider.of<AccountModel>(context, listen: false)
+            .updateAccountData(resData);
         displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => NavDrawer()));
+        // Redirect user
+        if (resData['accountType'] ==
+            accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => IdentityComponent()));
+        } else {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => NavDrawer()));
+        }
       } else {
         this._resetValidations(false);
         displayMessage('Identifiants incorrects !', Colors.red);
