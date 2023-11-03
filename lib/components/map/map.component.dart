@@ -22,7 +22,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
-import 'package:intl/intl.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import '../../models/account.model.dart';
@@ -70,8 +69,6 @@ class MapState extends State<MapComponent> {
   double? startLongitude;
   double? endLatitude;
   double? endLongitude;
-  double distance = 00.00;
-  double price = 00.00;
 
   OrderModel orderCreated = OrderModel('');
   DriverPositionModel? driverPositionModel;
@@ -179,64 +176,6 @@ class MapState extends State<MapComponent> {
     );
   }
 
-  String calculateDistanceBetweenPoints() {
-    if (startLatitude != null &&
-        startLongitude != null &&
-        endLatitude != null &&
-        endLongitude != null) {
-      setState(() {
-        distance = googleMapUtil.distanceBetween(
-            startLatitude!, startLongitude!, endLatitude!, endLongitude!);
-        distance = convertMetersInKm(double.parse(distance.toString()));
-        calculatePrice();
-      });
-    }
-    return "Distance : " + distance.toString() + " KM";
-  }
-
-  double convertMetersInKm(double distanceInMeters) {
-    double distanceInKiloMeters = distanceInMeters / 1000;
-    return double.parse((distanceInKiloMeters).toStringAsFixed(2));
-  }
-
-  void calculatePrice() {
-    // Get the current date and time
-    DateTime now = DateTime.now();
-    String formattedHour = DateFormat('HH').format(now);
-
-    if (int.parse(formattedHour) >= 8 && int.parse(formattedHour) <= 12) {
-      price = double.parse(distance.toString()) * 580.00;
-    }
-    if (int.parse(formattedHour) >= 13 && int.parse(formattedHour) <= 16) {
-      price = double.parse(distance.toString()) * 550.00;
-    }
-    if (int.parse(formattedHour) >= 16 && int.parse(formattedHour) <= 21) {
-      price = double.parse(distance.toString()) * 700.00;
-    }
-    if (int.parse(formattedHour) >= 21 && int.parse(formattedHour) <= 23) {
-      price = double.parse(distance.toString()) * 810.00;
-    }
-    if (int.parse(formattedHour) >= 0 && int.parse(formattedHour) <= 8) {
-      price = double.parse(distance.toString()) * 850.00;
-    }
-
-    // Convert the double to a string.
-    String stringValue = price.toString();
-    // Find the index of the decimal point.
-    int decimalIndex = stringValue.indexOf('.');
-    // If there is a decimal point, replace the characters after it with "00".
-    if (decimalIndex != -1) {
-      int charactersToReplace = stringValue.length - (decimalIndex + 1);
-      String newValue = stringValue.replaceRange(
-          decimalIndex + 1, decimalIndex + 1 + charactersToReplace, '00');
-      price = double.parse(newValue);
-    }
-  }
-
-  String displayPrice(double price) {
-    return "Prix : " + price.toString();
-  }
-
   _getCurrentLocation() async {
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
         .then((Position position) async {
@@ -312,10 +251,12 @@ class MapState extends State<MapComponent> {
         datetime: datetime,
         sourceLocation: sourceLocation,
         destinationLocation: destinationLocation,
-        distance: distance,
+        distance: 00.00,
         passenger: this.accountModel,
-        price: price,
+        price: 00.00,
         status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));
+
+    print(this.orderModel.toJson());
 
     // Web Socket
     final event = {
@@ -414,44 +355,23 @@ class MapState extends State<MapComponent> {
             SizedBox(height: 10),
             destinationACPTextField(),
             SizedBox(height: 12),
-            if (generalValidations())
-              Text(
-                calculateDistanceBetweenPoints(),
-                style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.black,
-                ),
-              ),
-            if (generalValidations()) SizedBox(height: 12),
-            /*if (generalValidations())
-              Text(
-                displayPrice(price),
-                style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.black,
-                ),
-              ),*/
-            //if (generalValidations()) SizedBox(height: 12),
             if (generalValidations()) _launchOrderButton(),
             StreamBuilder(
               stream: channel.stream,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   var jsonData = jsonDecode(snapshot.data);
-
                   List dataList = [];
-
                   if (jsonData['orderFinalData'] != null &&
                       jsonData['status'] == 1) {
                     /*jsonData['orderFinalData'].map((value) {
-                      print(value);
+                      print('value: $value');
                       //dataList.add(value);
                     });*/
 
                     for (var obj in jsonData['orderFinalData']) {
                       dataList.add(obj);
                     }
-
                     return OrderDriver(data: dataList);
                   }
                   return Text('Received: $jsonData');
