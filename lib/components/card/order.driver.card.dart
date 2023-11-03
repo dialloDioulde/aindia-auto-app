@@ -113,7 +113,7 @@ class _OrderDriverState extends State<OrderDriver> {
                     )),
                     Flexible(
                         child: Text(
-                      '2450 F CFA',
+                      element['price'].toString() + ' F CFA',
                       style: TextStyle(
                         fontSize: 15.0,
                         color: Colors.black,
