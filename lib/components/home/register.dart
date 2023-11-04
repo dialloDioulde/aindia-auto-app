@@ -4,8 +4,6 @@
  * @author mamadoudiallo
  */
 
-import 'dart:convert';
-
 import 'package:aindia_auto_app/components/home/login.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_buttons_ns/grouped_buttons_ns.dart';
@@ -56,64 +54,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   final _formKey = GlobalKey<FormState>();
   bool _formIsValid = false;
   bool _requestIsRunning = false;
-
-  Widget _buildLastname() {
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: TextFormField(
-        controller: _lastnameController,
-        onChanged: (value) {
-          _lastnameController.text = value;
-          this._formKeyState();
-        },
-        obscureText: false,
-        style: TextStyle(fontSize: 17),
-        decoration: const InputDecoration(
-          labelText: 'Nom',
-          hintText: 'Votre nom...',
-          labelStyle: TextStyle(
-            fontSize: 17,
-            color: Colors.black,
-          ),
-        ),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        keyboardType: TextInputType.text,
-        validator: (value) => _textFieldValidation(value),
-        onSaved: (value) {
-          _lastnameController = value! as TextEditingController;
-        },
-      ),
-    );
-  }
-
-  Widget _buildFirstname() {
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: TextFormField(
-        controller: _firstnameController,
-        onChanged: (value) {
-          _firstnameController.text = value;
-          this._formKeyState();
-        },
-        obscureText: false,
-        style: TextStyle(fontSize: 17),
-        decoration: const InputDecoration(
-          labelText: 'Prénom',
-          hintText: 'Votre prénom',
-          labelStyle: TextStyle(
-            fontSize: 17,
-            color: Colors.black,
-          ),
-        ),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        keyboardType: TextInputType.text,
-        validator: (value) => _textFieldValidation(value),
-        onSaved: (value) {
-          _firstnameController = value! as TextEditingController;
-        },
-      ),
-    );
-  }
 
   Widget _buildPhoneNumber() {
     return Padding(
@@ -243,17 +183,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     return null;
   }
 
-  _textFieldValidation(value) {
-    value = value!.trim()!;
-    if (value.isEmpty) {
-      return 'Ce champ est requis';
-    }
-    if (value.length < 1) {
-      return "Un minimum d'un caractère est requis";
-    }
-    return null;
-  }
-
   _phoneNumberFieldValidation(value) {
     value = value!.trim()!;
     if (value.isEmpty) {
@@ -342,10 +271,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       key: _formKey,
       child: Column(
         children: [
-          /*_buildLastname(),
-          const SizedBox(height: 4),
-          _buildFirstname(),
-          const SizedBox(height: 4),*/
           _buildPhoneNumber(),
           const SizedBox(height: 4),
           _buildPassword(),

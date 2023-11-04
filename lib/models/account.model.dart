@@ -4,12 +4,14 @@
  * @author mamadoudiallo
  */
 
+import 'package:aindia_auto_app/models/identity/identity.model.dart';
 import 'package:flutter/cupertino.dart';
 
 class AccountModel extends ChangeNotifier {
   String _id;
   String? accountId;
   int? accountType;
+  IdentityModel? identity;
   String? password;
   String? passwordConfirmation;
   String? phoneNumber;
@@ -20,6 +22,7 @@ class AccountModel extends ChangeNotifier {
     this._id, {
     this.accountId,
     this.accountType,
+    this.identity,
     this.password,
     this.passwordConfirmation,
     this.phoneNumber,
@@ -49,6 +52,14 @@ class AccountModel extends ChangeNotifier {
 
   void setAccountType(int accountType) {
     this.accountType = accountType;
+  }
+
+  IdentityModel? get getIdentity {
+    return this.identity;
+  }
+
+  void setIdentity(IdentityModel identity) {
+    this.identity = identity;
   }
 
   String? get getPassword {
@@ -96,6 +107,7 @@ class AccountModel extends ChangeNotifier {
       '_id': _id,
       'accountId': accountId,
       'accountType': accountType,
+      'identity': identity,
       'password': password,
       'passwordConfirmation': passwordConfirmation,
       'phoneNumber': phoneNumber,
@@ -108,11 +120,25 @@ class AccountModel extends ChangeNotifier {
     _id = accountData['_id'];
     accountId = accountData['accountId'];
     accountType = accountData['accountType'];
+    identity = accountData['identity'];
     password = accountData['password'];
     passwordConfirmation = accountData['passwordConfirmation'];
     phoneNumber = accountData['phoneNumber'];
     status = accountData['status'];
     token = accountData['token'];
+    notifyListeners();
+  }
+
+  void updateAccountModel(AccountModel accountModel) {
+    _id = accountModel.id;
+    accountId = accountModel.accountId;
+    accountType = accountModel.accountType;
+    identity = accountModel.identity;
+    password = accountModel.password;
+    passwordConfirmation = accountModel.passwordConfirmation;
+    phoneNumber = accountModel.phoneNumber;
+    status = accountModel.status;
+    token = accountModel.token;
     notifyListeners();
   }
 }

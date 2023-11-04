@@ -33,4 +33,12 @@ class IdentityService {
         headers: HeadersHeaderDart.headersWithToken(token),
         body: jsonEncode(identityModel));
   }
+
+  Future<http.Response> getIdentity(String id) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.get(
+        Uri.parse(
+            apiUrl + RouterApiConstants.identity + id),
+        headers: HeadersHeaderDart.headersWithToken(token));
+  }
 }

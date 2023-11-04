@@ -16,6 +16,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:web_socket_channel/io.dart';
 import 'components/drawers/nav.drawer.dart';
 import 'components/home/login.dart';
+import 'models/identity/identity.model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,6 +107,16 @@ class _MyAppState extends State<MyApp> {
                     status: decodedToken['status'],
                     token: widget.token,
                   );
+                  IdentityModel identityModel =
+                      IdentityModel('', accountModel, '', '');
+                  if (decodedToken['identity'] != null) {
+                    identityModel = IdentityModel(
+                        decodedToken['identity']['_id'],
+                        AccountModel(''),
+                        decodedToken['identity']['firstname'],
+                        decodedToken['identity']['lastname']);
+                  }
+                  accountModel.identity = identityModel;
                   return MultiProvider(
                     providers: [
                       ChangeNotifierProvider<AccountModel>(

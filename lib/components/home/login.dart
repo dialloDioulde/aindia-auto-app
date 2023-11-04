@@ -12,6 +12,7 @@ import 'package:aindia_auto_app/services/account.service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/account-type.enum.dart';
+import '../../models/identity/identity.model.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
 
@@ -137,7 +138,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     );
   }
 
-  void _userLoginAccount() async {
+  void _loginAccount() async {
     var data = {
       'phoneNumber': _phoneNumberController.text,
       'password': _passwordController.text
@@ -146,12 +147,30 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       if (response.statusCode == 200) {
         var resData = jsonDecode(response.body);
         sharedPreferencesUtil.setLocalDataByKey("token", resData['token']);
+        AccountModel accountModel = AccountModel(
+          resData['_id'],
+          accountId: resData['accountId'],
+          accountType: resData['accountType'],
+          phoneNumber: resData['phoneNumber'],
+          status: resData['status'],
+          token: resData['token'],
+        );
+        IdentityModel identityModel = IdentityModel('', accountModel, '', '');
+        if (resData['identity'] != null) {
+          identityModel = IdentityModel(
+              resData['identity']['_id'],
+              AccountModel(''),
+              resData['identity']['firstname'],
+              resData['identity']['lastname']);
+        }
+        accountModel.identity = identityModel;
         Provider.of<AccountModel>(context, listen: false)
-            .updateAccountData(resData);
+            .updateAccountModel(accountModel);
         displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
         // Redirect user
         if (resData['accountType'] ==
-            accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
+                accountType.accountTypeValue(AccountTypeEnum.DRIVER) &&
+            resData['identity']?['_id'] == null) {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => IdentityComponent()));
         } else {
@@ -163,6 +182,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         displayMessage('Identifiants incorrects !', Colors.red);
       }
     }).catchError((error) {
+      print(error);
       this._resetValidations(false);
       displayMessage('Une erreur est survenue !', Colors.red);
     });
@@ -198,7 +218,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           ElevatedButton(
             onPressed: _formIsValid && !_requestIsRunning
                 ? () {
-                    _userLoginAccount();
+                    _loginAccount();
                   }
                 : null,
             child: const Text(
