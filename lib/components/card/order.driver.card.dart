@@ -50,6 +50,7 @@ class _OrderDriverState extends State<OrderDriver> {
     final order = element['order'];
     final driverPosition = element['driverPosition'];
     final driver = element['driverPosition']['driver'];
+    final identity = element['identity'];
 
     return Card(
         margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
@@ -71,7 +72,7 @@ class _OrderDriverState extends State<OrderDriver> {
                     )),
                     Flexible(
                         child: Text(
-                      'DIALLO Mamadou',
+                          identity?['firstname'] + ' ' + identity?['lastname'],
                       style: TextStyle(
                         fontSize: 16.0,
                         color: Colors.black,
@@ -114,27 +115,6 @@ class _OrderDriverState extends State<OrderDriver> {
                     Flexible(
                         child: Text(
                       element['price'].toString() + ' F CFA',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black,
-                      ),
-                    )),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                        child: Text(
-                      'Distance entre vous',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black,
-                      ),
-                    )),
-                    Flexible(
-                        child: Text(
-                      element['dFOSourceLocation'].toString() + ' KM',
                       style: TextStyle(
                         fontSize: 16.0,
                         color: Colors.black,
