@@ -4,6 +4,8 @@
  * @author mamadoudiallo
  */
 
+import 'dart:convert';
+
 import 'package:aindia_auto_app/components/drawers/nav.drawer.dart';
 import 'package:aindia_auto_app/models/identity/identity.model.dart';
 import 'package:aindia_auto_app/services/identity/identity.service.dart';
@@ -137,6 +139,15 @@ class _IdentityStatefulWidgetState extends State<IdentityStatefulWidget> {
     await IdentityService().createIdentity(identityModel).then((response) {
       if (response.statusCode == 200) {
         displayMessage('Profile créé succès', Colors.green);
+        var identityCreated = jsonDecode(response.body);
+        IdentityModel identityModel = IdentityModel(
+            identityCreated['_id'],
+            accountModel,
+            identityCreated['firstname'],
+            identityCreated['lastname']);
+        accountModel.identity = identityModel;
+        Provider.of<AccountModel>(context, listen: false)
+            .updateAccountModel(accountModel);
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => NavDrawer()));
       } else if (response.statusCode == 422) {
@@ -159,7 +170,12 @@ class _IdentityStatefulWidgetState extends State<IdentityStatefulWidget> {
 
   _initializeData() {
     accountModel = Provider.of<AccountModel>(context, listen: false);
-    print(accountModel.toJson());
+    accountModel = AccountModel(accountModel.id,
+        accountId: accountModel.accountId,
+        accountType: accountModel.accountType,
+        phoneNumber: accountModel.phoneNumber,
+        status: accountModel.status,
+        token: accountModel.token);
   }
 
   @override

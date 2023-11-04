@@ -117,6 +117,13 @@ class _NavDrawerState extends State<NavDrawer> {
     _datesConfiguration();
     setState(() {
       accountModel = Provider.of<AccountModel>(context, listen: false);
+      accountModel = AccountModel(accountModel.id,
+          accountId: accountModel.accountId,
+          accountType: accountModel.accountType,
+          identity: accountModel.identity,
+          phoneNumber: accountModel.phoneNumber,
+          status: accountModel.status,
+          token: accountModel.token);
     });
     // Web Socket
     final event = {
@@ -157,7 +164,7 @@ class _NavDrawerState extends State<NavDrawer> {
         final event = {
           'action': "createRoom",
           'roomId': accountModel.id,
-          'driverPosition': driverPositionModel,
+          'driverPosition': driverPositionModel.toString(),
         };
         webSocketService.sendMessageWebSocket(channel, event);
       } else {
