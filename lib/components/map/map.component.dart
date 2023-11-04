@@ -247,22 +247,87 @@ class MapState extends State<MapComponent> {
     int datetime = datesUtil.convertDateTimeToMilliseconds(
         currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
 
-    this.orderModel = OrderModel('',
+    /*this.orderModel = OrderModel('',
         datetime: datetime,
         sourceLocation: sourceLocation,
         destinationLocation: destinationLocation,
         distance: 00.00,
         passenger: this.accountModel,
         price: 00.00,
-        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));
+        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));*/
+    /*this.orderModel = OrderModel('',
+        datetime: datetime,
+        sourceLocation: sourceLocation,
+        destinationLocation: destinationLocation,
+        distance: 00.00,
+        passenger: this.accountModel,
+        price: 00.00,
+        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));*/
 
-    print(this.orderModel.toJson());
+    /*var accountData = {
+      '_id': accountModel.id,
+      'accountId': accountModel.accountId,
+      'accountType': accountModel.accountType,
+      //'identity': identityData,
+      'phoneNumber': accountModel.phoneNumber,
+      'status': accountModel.status,
+    };
+
+    var identityData = {
+      '_id': accountModel.identity?.id,
+      'account': accountData,
+      'drivingLicense': accountModel.identity?.drivingLicense,
+      'firstname': accountModel.identity?.firstname,
+      'lastname': accountModel.identity?.lastname,
+    };
+    accountData['identity'] = identityData;
+
+    var orderData = {
+      'datetime': datetime,
+      'sourceLocation': sourceLocation,
+      'destinationLocation': destinationLocation,
+      'distance': 00.00,
+      'passenger': accountData,
+      'price': 00.00,
+      'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
+    };*/
+
+    //********************
+    var accountData = {
+      '_id': accountModel.id,
+      'accountId': accountModel.accountId,
+      'accountType': accountModel.accountType,
+      //'identity': identityData,
+      'phoneNumber': accountModel.phoneNumber,
+      'status': accountModel.status,
+    };
+
+    var identityData = {
+      '_id': accountModel.identity?.id,
+      'account': accountData,
+      'drivingLicense': accountModel.identity?.drivingLicense,
+      'firstname': accountModel.identity?.firstname,
+      'lastname': accountModel.identity?.lastname,
+    };
+    //accountData['identity'] = identityData;
+
+    var orderData = {
+      'datetime': datetime,
+      'sourceLocation': sourceLocation,
+      'destinationLocation': destinationLocation,
+      'distance': 00.00,
+      'passenger': accountData,
+      'price': 00.00,
+      'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
+    };
+    //********************
+    //print(this.orderModel.toJson());
 
     // Web Socket
     final event = {
       'action': "createRoom",
       'roomId': accountModel.id,
-      'order': orderModel,
+      'order': orderData,
     };
     webSocketService.sendMessageWebSocket(channel, event);
   }
@@ -282,7 +347,17 @@ class MapState extends State<MapComponent> {
 
   _initializeData() async {
     _datesConfiguration();
-    accountModel = Provider.of<AccountModel>(context, listen: false);
+    //accountModel = Provider.of<AccountModel>(context, listen: false);
+    setState(() {
+      accountModel = Provider.of<AccountModel>(context, listen: false);
+      accountModel = AccountModel(accountModel.id,
+          accountId: accountModel.accountId,
+          accountType: accountModel.accountType,
+          identity: accountModel.identity,
+          phoneNumber: accountModel.phoneNumber,
+          status: accountModel.status,
+          token: accountModel.token);
+    });
     // Map
     _getCurrentLocation(); // TODO
     _getPolyPoints(); // TODO
@@ -292,6 +367,7 @@ class MapState extends State<MapComponent> {
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+    //webSocketService.sendOrderWebSocket(channel, event);
 
     // Listen to events from the WebSocket
     /*channel.stream.listen((message) {

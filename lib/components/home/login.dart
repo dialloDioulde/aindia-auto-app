@@ -168,6 +168,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             .updateAccountModel(accountModel);
         displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
         // Redirect user
+        print(resData['identity']);
         if (resData['accountType'] ==
                 accountType.accountTypeValue(AccountTypeEnum.DRIVER) &&
             resData['identity']?['_id'] == null) {
