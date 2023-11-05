@@ -253,6 +253,109 @@ class MapState extends State<MapComponent> {
     );
   }
 
+  Widget _orderDetails() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                  child: Text(
+                'Détails de la commande',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+            ],
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                'Départ :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                _sourceLocationController.text,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+            ],
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                'Arrivé :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                _destinationController.text,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+            ],
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                'Distance du trajet :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                orderFinalData[0]['order']['distance'].toString() + ' KM',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
   void _datesConfiguration() async {
     tz.initializeTimeZones();
     initializeDateFormatting(constants.FR_FR, null);
@@ -346,12 +449,12 @@ class MapState extends State<MapComponent> {
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-
     // Listen to events from the WebSocket
     channel.stream.listen((message) {
       Map<String, dynamic> jsonData = jsonDecode(message);
-      //
-      if (jsonData["action"] == constants.ORDER_FROM_SERVER && jsonData['status'] == 1) {
+      // Order creation
+      if (jsonData["action"] == constants.ORDER_FROM_SERVER &&
+          jsonData['status'] == 1) {
         setState(() {
           orderFinalData = jsonData['orderFinalData'];
         });
@@ -361,7 +464,8 @@ class MapState extends State<MapComponent> {
               orderDataList.add(obj);
             });
           }
-      }}
+        }
+      }
     });
 
     // Fields controller
@@ -403,32 +507,85 @@ class MapState extends State<MapComponent> {
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+      child: SingleChildScrollView(
+        child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: <Widget>[
+                if (orderFinalData.length <= 0)
+                  Text(
+                    'Course',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                if (orderFinalData.length <= 0) SizedBox(height: 10),
+                if (orderFinalData.length <= 0) currentLocationACPTextField(),
+                if (orderFinalData.length <= 0) SizedBox(height: 10),
+                if (orderFinalData.length <= 0) destinationACPTextField(),
+                if (orderFinalData.length <= 0) SizedBox(height: 12),
+                if (generalValidations() && orderFinalData.length <= 0)
+                  _launchOrderButton(),
+                //
+                if (orderFinalData.length > 0)
+                  Text(
+                    'Taxis Disponibles',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                if (orderFinalData.length > 0) OrderDriver(data: orderDataList),
+                if (generalValidations() && orderFinalData.length > 0)
+                  SizedBox(height: 12),
+                if (generalValidations() && orderFinalData.length > 0)
+                  _cancelOrderButton(),
+                //
+                if (orderFinalData.length > 0) _orderDetails(),
+              ],
+            )),
+      ),
+    );
+  }
+}
+
+/*
+@override
+  Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
           child: Center(
               child: Center(
         child: Column(
           children: <Widget>[
-            if (orderFinalData.length <= 0) Text(
-              'Course',
-              style: TextStyle(fontSize: 20.0),
-            ),
+            if (orderFinalData.length <= 0)
+              Text(
+                'Course',
+                style: TextStyle(fontSize: 20.0),
+              ),
             if (orderFinalData.length <= 0) SizedBox(height: 10),
             if (orderFinalData.length <= 0) currentLocationACPTextField(),
             if (orderFinalData.length <= 0) SizedBox(height: 10),
             if (orderFinalData.length <= 0) destinationACPTextField(),
             if (orderFinalData.length <= 0) SizedBox(height: 12),
-            if (generalValidations() && orderFinalData.length <= 0) _launchOrderButton(),
-
-            if (orderFinalData.length > 0) Text(
-              'Taxis Disponibles',
-              style: TextStyle(fontSize: 20.0),
-            ),
+            if (generalValidations() && orderFinalData.length <= 0)
+              _launchOrderButton(),
+            if (orderFinalData.length > 0) _orderDetails(),
+            if (orderFinalData.length > 0)
+              Text(
+                'Taxis Disponibles',
+                style: TextStyle(fontSize: 20.0),
+              ),
             if (orderFinalData.length > 0) OrderDriver(data: orderDataList),
-            if (generalValidations() && orderFinalData.length > 0) _cancelOrderButton(),
+            if (generalValidations() && orderFinalData.length > 0)
+              _cancelOrderButton(),
           ],
         ),
       ))),
     );
   }
-}
+ */
