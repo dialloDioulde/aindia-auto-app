@@ -164,7 +164,7 @@ class _NavDrawerState extends State<NavDrawer> {
         final event = {
           'action': "createRoom",
           'roomId': accountModel.id,
-          'driverPosition': driverPositionModel.toString(),
+          'driverPosition': driverPositionModel.toJson(),
         };
         webSocketService.sendMessageWebSocket(channel, event);
       } else {
