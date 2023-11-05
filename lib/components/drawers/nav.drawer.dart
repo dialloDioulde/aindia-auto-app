@@ -209,9 +209,12 @@ class _NavDrawerState extends State<NavDrawer> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_title), backgroundColor: Colors.green),
-      body: Center(
+      body: Container(
         child: _displayComponentDynamically(),
       ),
+      /*body: Center(
+        child: _displayComponentDynamically(),
+      ),*/
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

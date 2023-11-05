@@ -72,10 +72,11 @@ class _OrderDriverState extends State<OrderDriver> {
                     )),
                     Flexible(
                         child: Text(
-                          identity?['firstname'] + ' ' + identity?['lastname'],
+                      identity?['firstname'] + ' ' + identity?['lastname'],
                       style: TextStyle(
                         fontSize: 16.0,
                         color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
                     ))
                   ],
@@ -97,6 +98,7 @@ class _OrderDriverState extends State<OrderDriver> {
                       style: TextStyle(
                         fontSize: 17.0,
                         color: Colors.green,
+                        fontWeight: FontWeight.bold,
                       ),
                     )),
                   ],
@@ -106,20 +108,21 @@ class _OrderDriverState extends State<OrderDriver> {
                   children: [
                     Flexible(
                         child: Text(
-                          'Distance entre vous',
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                          ),
-                        )),
+                      'Distance entre vous',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                      ),
+                    )),
                     Flexible(
                         child: Text(
-                          element['dFOSourceLocation'].toString() + ' KM',
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                          ),
-                        )),
+                      element['dFOSourceLocation'].toString() + ' KM',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
                   ],
                 ),
               ]),
