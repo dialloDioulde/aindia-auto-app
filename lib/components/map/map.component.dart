@@ -41,6 +41,9 @@ class MapComponent extends StatefulWidget {
 class MapState extends State<MapComponent> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
+  DriverPositionModel? driverPositionModel;
+  List orderFinalData = [];
+  List orderDataList = [];
 
   GoogleMapUtil googleMapUtil = GoogleMapUtil();
   DatesUtil datesUtil = DatesUtil();
@@ -69,9 +72,6 @@ class MapState extends State<MapComponent> {
   double? startLongitude;
   double? endLatitude;
   double? endLongitude;
-
-  OrderModel orderCreated = OrderModel('');
-  DriverPositionModel? driverPositionModel;
 
   late TextEditingController _sourceLocationController =
       TextEditingController(text: '');
@@ -213,7 +213,7 @@ class MapState extends State<MapComponent> {
         _createOrder();
       },
       child: const Text(
-        'Rechercher',
+        'RECHERCHER',
         style: TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -230,105 +230,85 @@ class MapState extends State<MapComponent> {
     );
   }
 
-  void _datesConfiguration() async {
-    tz.initializeTimeZones();
-    initializeDateFormatting("fr_FR", null);
+  Widget _cancelOrderButton() {
+    return ElevatedButton(
+      onPressed: () {
+        _cancelOrder();
+      },
+      child: const Text(
+        'ANNULER',
+        style: TextStyle(
+          fontSize: 20.0,
+          color: Colors.white,
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+    );
   }
 
-  //*******************************************************
+  void _datesConfiguration() async {
+    tz.initializeTimeZones();
+    initializeDateFormatting(constants.FR_FR, null);
+  }
+
   void _createOrder() async {
     MapPositionModel sourceLocation =
         MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
         MapPositionModel(endLatitude, endLongitude);
 
-    String currentTime =
-        datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+    String currentTime = datesUtil.getCurrentTime(
+        constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
     int datetime = datesUtil.convertDateTimeToMilliseconds(
-        currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+        currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
 
-    /*this.orderModel = OrderModel('',
-        datetime: datetime,
-        sourceLocation: sourceLocation,
-        destinationLocation: destinationLocation,
-        distance: 00.00,
-        passenger: this.accountModel,
-        price: 00.00,
-        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));*/
-    /*this.orderModel = OrderModel('',
-        datetime: datetime,
-        sourceLocation: sourceLocation,
-        destinationLocation: destinationLocation,
-        distance: 00.00,
-        passenger: this.accountModel,
-        price: 00.00,
-        status: orderStatus.orderStatusValue(OrderStatusEnum.PENDING));*/
-
-    /*var accountData = {
-      '_id': accountModel.id,
-      'accountId': accountModel.accountId,
-      'accountType': accountModel.accountType,
-      //'identity': identityData,
-      'phoneNumber': accountModel.phoneNumber,
-      'status': accountModel.status,
-    };
-
-    var identityData = {
-      '_id': accountModel.identity?.id,
-      'account': accountData,
-      'drivingLicense': accountModel.identity?.drivingLicense,
-      'firstname': accountModel.identity?.firstname,
-      'lastname': accountModel.identity?.lastname,
-    };
-    accountData['identity'] = identityData;
-
-    var orderData = {
-      'datetime': datetime,
-      'sourceLocation': sourceLocation,
-      'destinationLocation': destinationLocation,
-      'distance': 00.00,
-      'passenger': accountData,
-      'price': 00.00,
-      'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
-    };*/
-
-    //********************
     var accountData = {
       '_id': accountModel.id,
       'accountId': accountModel.accountId,
       'accountType': accountModel.accountType,
-      //'identity': identityData,
       'phoneNumber': accountModel.phoneNumber,
       'status': accountModel.status,
     };
 
-    var identityData = {
-      '_id': accountModel.identity?.id,
-      'account': accountData,
-      'drivingLicense': accountModel.identity?.drivingLicense,
-      'firstname': accountModel.identity?.firstname,
-      'lastname': accountModel.identity?.lastname,
-    };
-    //accountData['identity'] = identityData;
-
     var orderData = {
       'datetime': datetime,
       'sourceLocation': sourceLocation,
+      'sourceLocationText': _sourceLocationController.text,
       'destinationLocation': destinationLocation,
+      'destinationLocationText': _destinationController.text,
       'distance': 00.00,
       'passenger': accountData,
       'price': 00.00,
       'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
     };
-    //********************
-    //print(this.orderModel.toJson());
 
     // Web Socket
     final event = {
-      'action': "createRoom",
+      'action': "createOrder",
       'roomId': accountModel.id,
       'order': orderData,
     };
+    webSocketService.sendMessageWebSocket(channel, event);
+  }
+
+  _cancelOrder() {
+    // Web Socket
+    final event = {
+      'action': "cancelOrder",
+      'roomId': accountModel.id,
+      'order': orderFinalData[0]['order'],
+    };
+    setState(() {
+      orderFinalData = [];
+      orderDataList = [];
+    });
     webSocketService.sendMessageWebSocket(channel, event);
   }
 
@@ -347,7 +327,6 @@ class MapState extends State<MapComponent> {
 
   _initializeData() async {
     _datesConfiguration();
-    //accountModel = Provider.of<AccountModel>(context, listen: false);
     setState(() {
       accountModel = Provider.of<AccountModel>(context, listen: false);
       accountModel = AccountModel(accountModel.id,
@@ -359,23 +338,31 @@ class MapState extends State<MapComponent> {
           token: accountModel.token);
     });
     // Map
-    _getCurrentLocation(); // TODO
-    _getPolyPoints(); // TODO
+    _getCurrentLocation();
+    _getPolyPoints();
     // Web Socket
     final event = {
       'action': "createRoom",
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-    //webSocketService.sendOrderWebSocket(channel, event);
 
     // Listen to events from the WebSocket
-    /*channel.stream.listen((message) {
+    channel.stream.listen((message) {
       Map<String, dynamic> jsonData = jsonDecode(message);
-      if (jsonData["action"]! == constants.ORDER_FROM_SERVER &&
-
-      }
-    });*/
+      //
+      if (jsonData["action"] == constants.ORDER_FROM_SERVER && jsonData['status'] == 1) {
+        setState(() {
+          orderFinalData = jsonData['orderFinalData'];
+        });
+        if (orderFinalData.length > 0) {
+          for (var obj in jsonData['orderFinalData']) {
+            setState(() {
+              orderDataList.add(obj);
+            });
+          }
+      }}
+    });
 
     // Fields controller
     _sourceLocationController.addListener(() {
@@ -422,42 +409,23 @@ class MapState extends State<MapComponent> {
               child: Center(
         child: Column(
           children: <Widget>[
-            Text(
+            if (orderFinalData.length <= 0) Text(
               'Course',
               style: TextStyle(fontSize: 20.0),
             ),
-            SizedBox(height: 10),
-            currentLocationACPTextField(),
-            SizedBox(height: 10),
-            destinationACPTextField(),
-            SizedBox(height: 12),
-            if (generalValidations()) _launchOrderButton(),
-            StreamBuilder(
-              stream: channel.stream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var jsonData = jsonDecode(snapshot.data);
-                  List dataList = [];
-                  if (jsonData['orderFinalData'] != null &&
-                      jsonData['status'] == 1) {
-                    /*jsonData['orderFinalData'].map((value) {
-                      print('value: $value');
-                      //dataList.add(value);
-                    });*/
+            if (orderFinalData.length <= 0) SizedBox(height: 10),
+            if (orderFinalData.length <= 0) currentLocationACPTextField(),
+            if (orderFinalData.length <= 0) SizedBox(height: 10),
+            if (orderFinalData.length <= 0) destinationACPTextField(),
+            if (orderFinalData.length <= 0) SizedBox(height: 12),
+            if (generalValidations() && orderFinalData.length <= 0) _launchOrderButton(),
 
-                    for (var obj in jsonData['orderFinalData']) {
-                      dataList.add(obj);
-                    }
-                    return OrderDriver(data: dataList);
-                  }
-                  return Text('Received: $jsonData');
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  return Text('Waiting for data...');
-                }
-              },
+            if (orderFinalData.length > 0) Text(
+              'Taxis Disponibles',
+              style: TextStyle(fontSize: 20.0),
             ),
+            if (orderFinalData.length > 0) OrderDriver(data: orderDataList),
+            if (generalValidations() && orderFinalData.length > 0) _cancelOrderButton(),
           ],
         ),
       ))),

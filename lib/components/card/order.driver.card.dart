@@ -46,7 +46,7 @@ class _OrderDriverState extends State<OrderDriver> {
   }
 
   Widget cardTemplate(element) {
-    print(element);
+    //print(element);
     final order = element['order'];
     final driverPosition = element['driverPosition'];
     final driver = element['driverPosition']['driver'];
@@ -64,7 +64,7 @@ class _OrderDriverState extends State<OrderDriver> {
                   children: [
                     Flexible(
                         child: Text(
-                      'Nom',
+                      'Chauffeur',
                       style: TextStyle(
                         fontSize: 16.0,
                         color: Colors.black,
@@ -85,27 +85,6 @@ class _OrderDriverState extends State<OrderDriver> {
                   children: [
                     Flexible(
                         child: Text(
-                      'Statut',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black,
-                      ),
-                    )),
-                    Flexible(
-                        child: Text(
-                      'Disponible',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.green,
-                      ),
-                    )),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                        child: Text(
                       'Prix',
                       style: TextStyle(
                         fontSize: 16.0,
@@ -116,10 +95,31 @@ class _OrderDriverState extends State<OrderDriver> {
                         child: Text(
                       element['price'].toString() + ' F CFA',
                       style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black,
+                        fontSize: 17.0,
+                        color: Colors.green,
                       ),
                     )),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                        child: Text(
+                          'Distance entre vous',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.black,
+                          ),
+                        )),
+                    Flexible(
+                        child: Text(
+                          element['dFOSourceLocation'].toString() + ' KM',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.black,
+                          ),
+                        )),
                   ],
                 ),
               ]),

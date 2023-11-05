@@ -14,22 +14,26 @@ class OrderModel extends ChangeNotifier {
   String _id;
   int? datetime;
   MapPositionModel? destinationLocation;
+  Text? destinationLocationText;
   double? distance;
   AccountModel? driver;
   AccountModel? passenger;
   double? price;
   MapPositionModel? sourceLocation;
+  Text? sourceLocationText;
   int? status;
 
   OrderModel(
     this._id, {
     this.datetime,
     this.destinationLocation,
+    this.destinationLocationText,
     this.distance,
     this.driver,
     this.passenger,
     this.price,
     this.sourceLocation,
+    this.sourceLocationText,
     this.status,
   });
 
@@ -55,6 +59,14 @@ class OrderModel extends ChangeNotifier {
 
   void setDestinationLocation(MapPositionModel destinationLocation) {
     this.destinationLocation = destinationLocation;
+  }
+
+  Object? get getDestinationLocationText {
+    return destinationLocationText != null ? destinationLocationText : {};
+  }
+
+  void setDestinationLocationText(Text destinationLocationText) {
+    this.destinationLocationText = destinationLocationText;
   }
 
   double? get getDistance {
@@ -97,6 +109,14 @@ class OrderModel extends ChangeNotifier {
     this.sourceLocation = sourceLocation;
   }
 
+  Object? get getSourceLocationText {
+    return sourceLocationText != null ? sourceLocationText : {};
+  }
+
+  void setSourceLocationText(Text sourceLocationText) {
+    this.sourceLocationText = sourceLocationText;
+  }
+
   int? get getStatus {
     return status != null ? status : 0;
   }
@@ -110,11 +130,13 @@ class OrderModel extends ChangeNotifier {
       '_id': _id,
       'datetime': datetime,
       'destinationLocation': destinationLocation,
+      'destinationLocationText': destinationLocationText,
       'distance': distance,
       'driver': driver,
       'passenger': passenger,
       'price': price,
       'sourceLocation': sourceLocation,
+      'sourceLocationText': sourceLocationText,
       'status': status,
     };
   }
@@ -123,11 +145,13 @@ class OrderModel extends ChangeNotifier {
     _id = accountData['_id'];
     datetime = accountData['datetime'];
     destinationLocation = accountData['destinationLocation'];
+    destinationLocationText = accountData['destinationLocationText'];
     distance = accountData['distance'];
     driver = accountData['driver'];
     passenger = accountData['passenger'];
     price = accountData['price'];
     sourceLocation = accountData['sourceLocation'];
+    sourceLocationText = accountData['sourceLocationText'];
     status = accountData['status'];
     notifyListeners();
   }

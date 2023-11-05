@@ -14,4 +14,13 @@ class Constants {
   final ROOM_NOT_FOUND = "roomNotFound";
   final CLOSE = "close";
   final ORDER_FROM_SERVER = "orderFromServer";
+
+  // Language
+  final FR_FR = "fr_FR";
+
+  // TIMEZONE
+  final AFRICA_DAKAR = 'Africa/Dakar';
+
+  // Dates Format
+  final YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
 }
