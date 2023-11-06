@@ -9,6 +9,7 @@ import 'package:aindia_auto_app/components/home/register.dart';
 import 'package:aindia_auto_app/components/identity/identity.component.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
+import 'package:aindia_auto_app/utils/permissions/permission.handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/account-type.enum.dart';
@@ -166,17 +167,26 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         accountModel.identity = identityModel;
         Provider.of<AccountModel>(context, listen: false)
             .updateAccountModel(accountModel);
-        displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
-        // Redirect user
-        print(resData['identity']);
-        if (resData['accountType'] ==
-                accountType.accountTypeValue(AccountTypeEnum.DRIVER) &&
-            resData['identity']?['_id'] == null) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => IdentityComponent()));
+        // Permissions handle
+        PermissionHandler permissionHandler = PermissionHandler();
+        final requestPermissionsRes =
+            await permissionHandler.requestPermissions();
+        if (requestPermissionsRes) {
+          displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
+          if (resData['accountType'] ==
+                  accountType.accountTypeValue(AccountTypeEnum.DRIVER) &&
+              resData['identity']?['_id'] == null) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => IdentityComponent()));
+          } else {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => NavDrawer()));
+          }
         } else {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => NavDrawer()));
+          displayMessage(
+              "Vous devez accépter les autorisations demandées pour pouvoir utiliser notre application Aindia Auto",
+              Colors.red);
+          _logoutAccount();
         }
       } else {
         this._resetValidations(false);
@@ -187,6 +197,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       this._resetValidations(false);
       displayMessage('Une erreur est survenue !', Colors.red);
     });
+  }
+
+  void _logoutAccount() {
+    sharedPreferencesUtil.setLocalDataByKey('token', '');
   }
 
   @override
