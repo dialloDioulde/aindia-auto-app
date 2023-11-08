@@ -18,7 +18,6 @@ import 'package:timezone/data/latest.dart' as tz;
 
 import '../../models/account-type.enum.dart';
 import '../../models/account.model.dart';
-import '../../models/driver-position/driver-position.model.dart';
 import '../../models/driver-position/driver-status.enum.dart';
 import '../../models/map/map-position.model.dart';
 import '../../services/config/config.service.dart';
@@ -29,8 +28,8 @@ import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../account/account.component.dart';
-import '../home/login.dart';
-import '../map/map.component.dart';
+import '../account/login.dart';
+import '../orders/order.dart';
 
 class NavDrawer extends StatefulWidget {
   const NavDrawer({super.key});
@@ -91,7 +90,7 @@ class _NavDrawerState extends State<NavDrawer> {
     if (_selectedIndex == 0) {
       if (accountModel.accountType ==
           accountType.accountTypeValue(AccountTypeEnum.PASSENGER)) {
-        return MapComponent();
+        return Order();
       } else if (accountModel.accountType ==
           accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
         return AccountComponent();
@@ -125,9 +124,9 @@ class _NavDrawerState extends State<NavDrawer> {
           status: accountModel.status,
           token: accountModel.token);
     });
-    // Web Socket
+    // Init  Web Socket
     final event = {
-      'action': "createRoom",
+      'action': constants.CREATE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
@@ -147,26 +146,39 @@ class _NavDrawerState extends State<NavDrawer> {
         Geolocator.getPositionStream(locationSettings: locationSettings)
             .listen((Position? position) {
       if (position != null) {
-        String currentTime =
-            datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+        String currentTime = datesUtil.getCurrentTime(
+            constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
         int datetime = datesUtil.convertDateTimeToMilliseconds(
-            currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-        positionModel = MapPositionModel(position.latitude, position.longitude);
-        DriverPositionModel driverPositionModel = DriverPositionModel(
-            '',
-            datetime,
-            accountModel,
-            positionModel!,
-            driverPositionStatus
-                .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE));
+            currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+
+        var accountData = {
+          '_id': accountModel.id,
+          'accountId': accountModel.accountId,
+          'accountType': accountModel.accountType,
+          'phoneNumber': accountModel.phoneNumber,
+          'status': accountModel.status,
+        };
+        var positionData = {
+          'latitude': position.latitude,
+          'longitude': position.longitude
+        };
+        var driverPositionData = {
+          'datetime': datetime,
+          'accountModel': accountData,
+          'positionModel': positionData,
+          'status': driverPositionStatus
+              .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE)
+        };
 
         // Web Socket
         final event = {
-          'action': "createRoom",
+          'action': constants.UPDATE_DRIVER_POSITION,
           'roomId': accountModel.id,
-          'driverPosition': driverPositionModel.toJson(),
+          'driverPosition': driverPositionData,
         };
         webSocketService.sendMessageWebSocket(channel, event);
+        // Keep websocket alive
+        webSocketService.keepWebSocketAlive(channel);
       } else {
         _displayMessage(
             'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
@@ -177,7 +189,7 @@ class _NavDrawerState extends State<NavDrawer> {
 
   void _datesConfiguration() async {
     tz.initializeTimeZones();
-    initializeDateFormatting("fr_FR", null);
+    initializeDateFormatting(constants.FR_FR, null);
   }
 
   void _logoutAccount(context) {
@@ -185,10 +197,11 @@ class _NavDrawerState extends State<NavDrawer> {
     positionStream?.cancel();
     // Web Socket
     final event = {
-      'action': "leaveRoom",
+      'action': constants.LEAVE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+    webSocketService.closeWebSocket(channel);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const Login()));
   }
@@ -201,8 +214,9 @@ class _NavDrawerState extends State<NavDrawer> {
 
   @override
   void dispose() {
-    super.dispose();
     positionStream?.cancel();
+    webSocketService.closeWebSocket(channel);
+    super.dispose();
   }
 
   @override
@@ -212,9 +226,6 @@ class _NavDrawerState extends State<NavDrawer> {
       body: Container(
         child: _displayComponentDynamically(),
       ),
-      /*body: Center(
-        child: _displayComponentDynamically(),
-      ),*/
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

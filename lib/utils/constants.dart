@@ -8,12 +8,16 @@ class Constants {
   final GOOGLE_MAP_COUNTRIES = ["sn", "gm", "ci", "fr", "ca"];
 
   // WEB SOCKETS EVENTS
-  final ROOM_CREATED = "roomCreated";
+  final CREATE_ROOM = "createRoom";
   final ROOM_ALREADY_EXISTS = "roomAlreadyExists";
   final LEFT_ROOM = "leftRoom";
+  final LEAVE_ROOM = "leaveRoom";
   final ROOM_NOT_FOUND = "roomNotFound";
   final CLOSE = "close";
   final ORDER_FROM_SERVER = "orderFromServer";
+  final UPDATE_DRIVER_POSITION = "updateDriverPosition";
+  final CREATE_ORDER = "createOrder";
+  final CANCEL_ORDER = "cancelOrder";
 
   // Language
   final FR_FR = "fr_FR";

@@ -13,9 +13,10 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:velocity_x/velocity_x.dart';
 import 'package:web_socket_channel/io.dart';
 import 'components/drawers/nav.drawer.dart';
-import 'components/home/login.dart';
+import 'components/account/login.dart';
 import 'models/identity/identity.model.dart';
 
 void main() async {
@@ -69,7 +70,9 @@ class _MyAppState extends State<MyApp> {
 
   _initializeData() async {
     // Web Socket
-    webSocketService.startWebSocket(channel);
+    if (widget.token.isNotEmptyAndNotNull) {
+      webSocketService.startWebSocket(channel);
+    }
     initializeDateFormatting();
   }
 
@@ -81,7 +84,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    webSocketService.closeWebSocket(channel);
+    // Web Socket
+    if (widget.token.isNotEmptyAndNotNull) {
+      webSocketService.closeWebSocket(channel);
+    }
     super.dispose();
   }
 

@@ -14,4 +14,6 @@ class ConfigService {
   String get apiUrl => dotenv.env['API_BASE_URL'] ?? '';
 
   String get googleApiKey => dotenv.env['GOOGLE_API_KEY'] ?? '';
+
+  String get webSocketApiUrl => dotenv.env['WEB_SOCKET_API_URL'] ?? '';
 }

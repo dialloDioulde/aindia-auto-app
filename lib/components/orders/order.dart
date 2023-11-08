@@ -1,8 +1,10 @@
 /**
- * @created 14/10/2023 - 17:23
+ * @created 07/11/2023 - 22:34
  * @project aindia_auto_app
  * @author mamadoudiallo
  */
+
+
 
 import 'dart:async';
 import 'dart:convert';
@@ -31,14 +33,14 @@ import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 import '../card/order.driver.card.dart';
 
-class MapComponent extends StatefulWidget {
-  const MapComponent({super.key});
+class Order extends StatefulWidget {
+  const Order({super.key});
 
   @override
-  State<MapComponent> createState() => MapState();
+  State<Order> createState() => OrderState();
 }
 
-class MapState extends State<MapComponent> {
+class OrderState extends State<Order> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
   DriverPositionModel? driverPositionModel;
@@ -61,7 +63,7 @@ class MapState extends State<MapComponent> {
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
 
   final Completer<GoogleMapController> _controller =
-      Completer<GoogleMapController>();
+  Completer<GoogleMapController>();
 
   GoogleMapController? mapController;
   LatLng _sourcePosition = LatLng(46.8122, -71.1836);
@@ -74,9 +76,9 @@ class MapState extends State<MapComponent> {
   double? endLongitude;
 
   late TextEditingController _sourceLocationController =
-      TextEditingController(text: '');
+  TextEditingController(text: '');
   late TextEditingController _destinationController =
-      TextEditingController(text: '');
+  TextEditingController(text: '');
 
   String _onTextChanged(fieldController) {
     return fieldController.text;
@@ -195,11 +197,11 @@ class MapState extends State<MapComponent> {
     const googleApiKey = 'AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E';
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult polylineResult =
-        await polylinePoints.getRouteBetweenCoordinates(
-            googleApiKey,
-            PointLatLng(_sourcePosition.latitude, _sourcePosition.longitude),
-            PointLatLng(
-                _destinationPosition.latitude, _destinationPosition.longitude));
+    await polylinePoints.getRouteBetweenCoordinates(
+        googleApiKey,
+        PointLatLng(_sourcePosition.latitude, _sourcePosition.longitude),
+        PointLatLng(
+            _destinationPosition.latitude, _destinationPosition.longitude));
 
     if (polylineResult.points.isNotEmpty) {
       polylineResult.points.forEach((PointLatLng point) =>
@@ -264,13 +266,13 @@ class MapState extends State<MapComponent> {
             children: [
               Flexible(
                   child: Text(
-                'Détails de la commande',
-                style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+                    'Détails de la commande',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
             ],
           ),
           SizedBox(height: 14),
@@ -278,51 +280,25 @@ class MapState extends State<MapComponent> {
             children: [
               Flexible(
                   child: Text(
-                'Départ :',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                ),
-              )),
+                    'Départ :',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                    ),
+                  )),
             ],
           ),
           Row(
             children: [
               Flexible(
                   child: Text(
-                _sourceLocationController.text,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
-            ],
-          ),
-          SizedBox(height: 14),
-          Row(
-            children: [
-              Flexible(
-                  child: Text(
-                'Arrivé :',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                ),
-              )),
-            ],
-          ),
-          Row(
-            children: [
-              Flexible(
-                  child: Text(
-                _destinationController.text,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+                    _sourceLocationController.text,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
             ],
           ),
           SizedBox(height: 14),
@@ -330,25 +306,51 @@ class MapState extends State<MapComponent> {
             children: [
               Flexible(
                   child: Text(
-                'Distance du trajet :',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                ),
-              )),
+                    'Arrivé :',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                    ),
+                  )),
             ],
           ),
           Row(
             children: [
               Flexible(
                   child: Text(
-                orderFinalData[0]['order']['distance'].toString() + ' KM',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+                    _destinationController.text,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+            ],
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                    'Distance du trajet :',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                    ),
+                  )),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                    orderFinalData[0]['order']['distance'].toString() + ' KM',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
             ],
           )
         ],
@@ -363,9 +365,9 @@ class MapState extends State<MapComponent> {
 
   void _createOrder() async {
     MapPositionModel sourceLocation =
-        MapPositionModel(startLatitude, startLongitude);
+    MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
-        MapPositionModel(endLatitude, endLongitude);
+    MapPositionModel(endLatitude, endLongitude);
 
     String currentTime = datesUtil.getCurrentTime(
         constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
@@ -394,7 +396,7 @@ class MapState extends State<MapComponent> {
 
     // Web Socket
     final event = {
-      'action': "createOrder",
+      'action': constants.CREATE_ORDER,
       'roomId': accountModel.id,
       'order': orderData,
     };
@@ -404,7 +406,7 @@ class MapState extends State<MapComponent> {
   _cancelOrder() {
     // Web Socket
     final event = {
-      'action': "cancelOrder",
+      'action': constants.CANCEL_ORDER,
       'roomId': accountModel.id,
       'order': orderFinalData[0]['order'],
     };
@@ -443,12 +445,16 @@ class MapState extends State<MapComponent> {
     // Map
     _getCurrentLocation();
     _getPolyPoints();
+
     // Web Socket
     final event = {
-      'action': "createRoom",
+      'action': constants.CREATE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+    // Keep websocket alive
+    webSocketService.keepWebSocketAlive(channel);
+
     // Listen to events from the WebSocket
     channel.stream.listen((message) {
       Map<String, dynamic> jsonData = jsonDecode(message);
@@ -501,7 +507,6 @@ class MapState extends State<MapComponent> {
   void dispose() {
     _sourceLocationController.dispose();
     _destinationController.dispose();
-    webSocketService.closeWebSocket(channel);
     super.dispose();
   }
 
