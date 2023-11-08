@@ -5,6 +5,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:aindia_auto_app/components/orders/list.order.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,6 @@ import 'package:timezone/data/latest.dart' as tz;
 
 import '../../models/account-type.enum.dart';
 import '../../models/account.model.dart';
-import '../../models/driver-position/driver-position.model.dart';
 import '../../models/driver-position/driver-status.enum.dart';
 import '../../models/map/map-position.model.dart';
 import '../../services/config/config.service.dart';
@@ -29,8 +29,8 @@ import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../account/account.component.dart';
-import '../home/login.dart';
-import '../map/map.component.dart';
+import '../account/login.dart';
+import '../orders/order.dart';
 
 class NavDrawer extends StatefulWidget {
   const NavDrawer({super.key});
@@ -60,6 +60,8 @@ class _NavDrawerState extends State<NavDrawer> {
 
   GoogleMapController? mapController;
   StreamSubscription? positionStream;
+
+  Timer? heartbeatTimer;
 
   String _title = 'Aindia Auto';
   int _selectedIndex = 0;
@@ -91,7 +93,7 @@ class _NavDrawerState extends State<NavDrawer> {
     if (_selectedIndex == 0) {
       if (accountModel.accountType ==
           accountType.accountTypeValue(AccountTypeEnum.PASSENGER)) {
-        return MapComponent();
+        return Order();
       } else if (accountModel.accountType ==
           accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
         return AccountComponent();
@@ -125,9 +127,9 @@ class _NavDrawerState extends State<NavDrawer> {
           status: accountModel.status,
           token: accountModel.token);
     });
-    // Web Socket
+    // Init  Web Socket
     final event = {
-      'action': "createRoom",
+      'action': constants.CREATE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
@@ -136,6 +138,7 @@ class _NavDrawerState extends State<NavDrawer> {
             accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
       _initLocationService();
     }
+    _listenWebsockets();
   }
 
   void _initLocationService() {
@@ -147,24 +150,35 @@ class _NavDrawerState extends State<NavDrawer> {
         Geolocator.getPositionStream(locationSettings: locationSettings)
             .listen((Position? position) {
       if (position != null) {
-        String currentTime =
-            datesUtil.getCurrentTime('Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
+        String currentTime = datesUtil.getCurrentTime(
+            constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
         int datetime = datesUtil.convertDateTimeToMilliseconds(
-            currentTime, 'Africa/Dakar', 'yyyy-MM-dd HH:mm:ss');
-        positionModel = MapPositionModel(position.latitude, position.longitude);
-        DriverPositionModel driverPositionModel = DriverPositionModel(
-            '',
-            datetime,
-            accountModel,
-            positionModel!,
-            driverPositionStatus
-                .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE));
+            currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+
+        var accountData = {
+          '_id': accountModel.id,
+          'accountId': accountModel.accountId,
+          'accountType': accountModel.accountType,
+          'phoneNumber': accountModel.phoneNumber,
+          'status': accountModel.status,
+        };
+        var positionData = {
+          'latitude': position.latitude,
+          'longitude': position.longitude
+        };
+        var driverPositionData = {
+          'datetime': datetime,
+          'accountModel': accountData,
+          'positionModel': positionData,
+          'status': driverPositionStatus
+              .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE)
+        };
 
         // Web Socket
         final event = {
-          'action': "createRoom",
+          'action': constants.UPDATE_DRIVER_POSITION,
           'roomId': accountModel.id,
-          'driverPosition': driverPositionModel.toJson(),
+          'driverPosition': driverPositionData,
         };
         webSocketService.sendMessageWebSocket(channel, event);
       } else {
@@ -175,20 +189,58 @@ class _NavDrawerState extends State<NavDrawer> {
     });
   }
 
+  void _listenWebsockets() {
+    channel.stream.listen(
+      (message) {
+        // Handle incoming WebSocket messages
+        print('Received: $message');
+      },
+      onDone: () async {
+        // Handle WebSocket disconnection
+        print('WebSocket connection closed');
+        final token = await SharedPreferencesUtil().getToken();
+        if (token.isNotEmptyAndNotNull) {
+          _keepWebSocketAlive(channel);
+        }
+      },
+      onError: (error) async {
+        // Handle WebSocket errors
+        print('WebSocket error: $error');
+        final token = await SharedPreferencesUtil().getToken();
+        if (token.isNotEmptyAndNotNull) {
+          _keepWebSocketAlive(channel);
+        }
+      },
+    );
+    _keepWebSocketAlive(channel);
+  }
+
+  Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
+      {event = null}) async {
+    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (event == null) {
+        event = {'action': 'keepWebsocketsAlive', 'message': 'KWA'};
+      }
+      channel.sink.add(jsonEncode(event));
+    });
+  }
+
   void _datesConfiguration() async {
     tz.initializeTimeZones();
-    initializeDateFormatting("fr_FR", null);
+    initializeDateFormatting(constants.FR_FR, null);
   }
 
   void _logoutAccount(context) {
     sharedPreferencesUtil.setLocalDataByKey('token', '');
     positionStream?.cancel();
+    heartbeatTimer?.cancel();
     // Web Socket
     final event = {
-      'action': "leaveRoom",
+      'action': constants.LEAVE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+    webSocketService.closeWebSocket(channel);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const Login()));
   }
@@ -201,8 +253,10 @@ class _NavDrawerState extends State<NavDrawer> {
 
   @override
   void dispose() {
-    super.dispose();
     positionStream?.cancel();
+    heartbeatTimer?.cancel();
+    webSocketService.closeWebSocket(channel);
+    super.dispose();
   }
 
   @override
@@ -212,9 +266,6 @@ class _NavDrawerState extends State<NavDrawer> {
       body: Container(
         child: _displayComponentDynamically(),
       ),
-      /*body: Center(
-        child: _displayComponentDynamically(),
-      ),*/
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

@@ -8,10 +8,13 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/io.dart';
 
+import '../config/config.service.dart';
+
 class WebSocketService {
+  String webSocketApiUrl = ConfigService().webSocketApiUrl;
 
   IOWebSocketChannel setupWebSocket() {
-    return IOWebSocketChannel.connect('ws://10.0.2.2:3000');
+    return IOWebSocketChannel.connect(webSocketApiUrl);
   }
 
   void startWebSocket(IOWebSocketChannel channel) {

@@ -1,5 +1,5 @@
 /**
- * @created 14/10/2023 - 17:23
+ * @created 07/11/2023 - 22:34
  * @project aindia_auto_app
  * @author mamadoudiallo
  */
@@ -31,14 +31,14 @@ import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 import '../card/order.driver.card.dart';
 
-class MapComponent extends StatefulWidget {
-  const MapComponent({super.key});
+class Order extends StatefulWidget {
+  const Order({super.key});
 
   @override
-  State<MapComponent> createState() => MapState();
+  State<Order> createState() => OrderState();
 }
 
-class MapState extends State<MapComponent> {
+class OrderState extends State<Order> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
   DriverPositionModel? driverPositionModel;
@@ -394,7 +394,7 @@ class MapState extends State<MapComponent> {
 
     // Web Socket
     final event = {
-      'action': "createOrder",
+      'action': constants.CREATE_ORDER,
       'roomId': accountModel.id,
       'order': orderData,
     };
@@ -404,7 +404,7 @@ class MapState extends State<MapComponent> {
   _cancelOrder() {
     // Web Socket
     final event = {
-      'action': "cancelOrder",
+      'action': constants.CANCEL_ORDER,
       'roomId': accountModel.id,
       'order': orderFinalData[0]['order'],
     };
@@ -443,12 +443,14 @@ class MapState extends State<MapComponent> {
     // Map
     _getCurrentLocation();
     _getPolyPoints();
+
     // Web Socket
     final event = {
-      'action': "createRoom",
+      'action': constants.CREATE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
+
     // Listen to events from the WebSocket
     channel.stream.listen((message) {
       Map<String, dynamic> jsonData = jsonDecode(message);
@@ -501,7 +503,6 @@ class MapState extends State<MapComponent> {
   void dispose() {
     _sourceLocationController.dispose();
     _destinationController.dispose();
-    webSocketService.closeWebSocket(channel);
     super.dispose();
   }
 

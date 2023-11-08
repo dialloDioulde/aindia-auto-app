@@ -4,12 +4,12 @@
  * @author mamadoudiallo
  */
 
-import 'package:aindia_auto_app/components/home/login.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_buttons_ns/grouped_buttons_ns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/account.service.dart';
+import 'login.dart';
 
 class Register extends StatelessWidget {
   const Register({Key? key}) : super(key: key);

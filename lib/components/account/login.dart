@@ -5,7 +5,7 @@
  */
 
 import 'dart:convert';
-import 'package:aindia_auto_app/components/home/register.dart';
+import 'package:aindia_auto_app/components/account/register.dart';
 import 'package:aindia_auto_app/components/identity/identity.component.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';

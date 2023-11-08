@@ -15,7 +15,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:web_socket_channel/io.dart';
 import 'components/drawers/nav.drawer.dart';
-import 'components/home/login.dart';
+import 'components/account/login.dart';
 import 'models/identity/identity.model.dart';
 
 void main() async {
@@ -53,8 +53,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   AccountModel accountModel = AccountModel('');
 
-  SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
-
   // Web Socket
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
@@ -68,8 +66,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   _initializeData() async {
-    // Web Socket
-    webSocketService.startWebSocket(channel);
     initializeDateFormatting();
   }
 
@@ -81,7 +77,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    webSocketService.closeWebSocket(channel);
     super.dispose();
   }
 
