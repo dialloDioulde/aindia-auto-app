@@ -4,8 +4,6 @@
  * @author mamadoudiallo
  */
 
-
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:aindia_auto_app/models/driver-position/driver-position.model.dart';
@@ -63,7 +61,7 @@ class OrderState extends State<Order> {
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
 
   final Completer<GoogleMapController> _controller =
-  Completer<GoogleMapController>();
+      Completer<GoogleMapController>();
 
   GoogleMapController? mapController;
   LatLng _sourcePosition = LatLng(46.8122, -71.1836);
@@ -76,9 +74,9 @@ class OrderState extends State<Order> {
   double? endLongitude;
 
   late TextEditingController _sourceLocationController =
-  TextEditingController(text: '');
+      TextEditingController(text: '');
   late TextEditingController _destinationController =
-  TextEditingController(text: '');
+      TextEditingController(text: '');
 
   String _onTextChanged(fieldController) {
     return fieldController.text;
@@ -197,11 +195,11 @@ class OrderState extends State<Order> {
     const googleApiKey = 'AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E';
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult polylineResult =
-    await polylinePoints.getRouteBetweenCoordinates(
-        googleApiKey,
-        PointLatLng(_sourcePosition.latitude, _sourcePosition.longitude),
-        PointLatLng(
-            _destinationPosition.latitude, _destinationPosition.longitude));
+        await polylinePoints.getRouteBetweenCoordinates(
+            googleApiKey,
+            PointLatLng(_sourcePosition.latitude, _sourcePosition.longitude),
+            PointLatLng(
+                _destinationPosition.latitude, _destinationPosition.longitude));
 
     if (polylineResult.points.isNotEmpty) {
       polylineResult.points.forEach((PointLatLng point) =>
@@ -266,13 +264,13 @@ class OrderState extends State<Order> {
             children: [
               Flexible(
                   child: Text(
-                    'Détails de la commande',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
+                'Détails de la commande',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
             ],
           ),
           SizedBox(height: 14),
@@ -280,51 +278,25 @@ class OrderState extends State<Order> {
             children: [
               Flexible(
                   child: Text(
-                    'Départ :',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                    ),
-                  )),
+                'Départ :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
             ],
           ),
           Row(
             children: [
               Flexible(
                   child: Text(
-                    _sourceLocationController.text,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-            ],
-          ),
-          SizedBox(height: 14),
-          Row(
-            children: [
-              Flexible(
-                  child: Text(
-                    'Arrivé :',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                    ),
-                  )),
-            ],
-          ),
-          Row(
-            children: [
-              Flexible(
-                  child: Text(
-                    _destinationController.text,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
+                _sourceLocationController.text,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
             ],
           ),
           SizedBox(height: 14),
@@ -332,25 +304,51 @@ class OrderState extends State<Order> {
             children: [
               Flexible(
                   child: Text(
-                    'Distance du trajet :',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                    ),
-                  )),
+                'Arrivé :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
             ],
           ),
           Row(
             children: [
               Flexible(
                   child: Text(
-                    orderFinalData[0]['order']['distance'].toString() + ' KM',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
+                _destinationController.text,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+            ],
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                'Distance du trajet :',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              )),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                  child: Text(
+                orderFinalData[0]['order']['distance'].toString() + ' KM',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
             ],
           )
         ],
@@ -365,9 +363,9 @@ class OrderState extends State<Order> {
 
   void _createOrder() async {
     MapPositionModel sourceLocation =
-    MapPositionModel(startLatitude, startLongitude);
+        MapPositionModel(startLatitude, startLongitude);
     MapPositionModel destinationLocation =
-    MapPositionModel(endLatitude, endLongitude);
+        MapPositionModel(endLatitude, endLongitude);
 
     String currentTime = datesUtil.getCurrentTime(
         constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
@@ -452,8 +450,6 @@ class OrderState extends State<Order> {
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-    // Keep websocket alive
-    webSocketService.keepWebSocketAlive(channel);
 
     // Listen to events from the WebSocket
     channel.stream.listen((message) {

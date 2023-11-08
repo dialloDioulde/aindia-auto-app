@@ -5,6 +5,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:aindia_auto_app/components/orders/list.order.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,8 @@ class _NavDrawerState extends State<NavDrawer> {
 
   GoogleMapController? mapController;
   StreamSubscription? positionStream;
+
+  Timer? heartbeatTimer;
 
   String _title = 'Aindia Auto';
   int _selectedIndex = 0;
@@ -135,6 +138,7 @@ class _NavDrawerState extends State<NavDrawer> {
             accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
       _initLocationService();
     }
+    _listenWebsockets();
   }
 
   void _initLocationService() {
@@ -177,13 +181,47 @@ class _NavDrawerState extends State<NavDrawer> {
           'driverPosition': driverPositionData,
         };
         webSocketService.sendMessageWebSocket(channel, event);
-        // Keep websocket alive
-        webSocketService.keepWebSocketAlive(channel);
       } else {
         _displayMessage(
             'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
             Colors.red);
       }
+    });
+  }
+
+  void _listenWebsockets() {
+    channel.stream.listen(
+      (message) {
+        // Handle incoming WebSocket messages
+        print('Received: $message');
+      },
+      onDone: () async {
+        // Handle WebSocket disconnection
+        print('WebSocket connection closed');
+        final token = await SharedPreferencesUtil().getToken();
+        if (token.isNotEmptyAndNotNull) {
+          _keepWebSocketAlive(channel);
+        }
+      },
+      onError: (error) async {
+        // Handle WebSocket errors
+        print('WebSocket error: $error');
+        final token = await SharedPreferencesUtil().getToken();
+        if (token.isNotEmptyAndNotNull) {
+          _keepWebSocketAlive(channel);
+        }
+      },
+    );
+    _keepWebSocketAlive(channel);
+  }
+
+  Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
+      {event = null}) async {
+    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (event == null) {
+        event = {'action': 'keepWebsocketsAlive', 'message': 'KWA'};
+      }
+      channel.sink.add(jsonEncode(event));
     });
   }
 
@@ -195,6 +233,7 @@ class _NavDrawerState extends State<NavDrawer> {
   void _logoutAccount(context) {
     sharedPreferencesUtil.setLocalDataByKey('token', '');
     positionStream?.cancel();
+    heartbeatTimer?.cancel();
     // Web Socket
     final event = {
       'action': constants.LEAVE_ROOM,
@@ -215,6 +254,7 @@ class _NavDrawerState extends State<NavDrawer> {
   @override
   void dispose() {
     positionStream?.cancel();
+    heartbeatTimer?.cancel();
     webSocketService.closeWebSocket(channel);
     super.dispose();
   }
