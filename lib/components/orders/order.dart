@@ -208,46 +208,46 @@ class OrderState extends State<Order> {
   }
 
   Widget _launchOrderButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _createOrder();
-      },
-      child: const Text(
-        'RECHERCHER',
-        style: TextStyle(
-          fontSize: 20.0,
-          color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ElevatedButton(
+        child: Text(
+          "RECHERCHER",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+        onPressed: () {
+          _createOrder();
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(10),
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32.0),
+          ),
         ),
       ),
     );
   }
 
   Widget _cancelOrderButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _cancelOrder();
-      },
-      child: const Text(
-        'ANNULER',
-        style: TextStyle(
-          fontSize: 20.0,
-          color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: ElevatedButton(
+        child: Text(
+          "ANNULER",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+        onPressed: () {
+          _cancelOrder();
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(10),
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32.0),
+          ),
         ),
       ),
     );

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:aindia_auto_app/components/orders/list.order.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +75,7 @@ class _NavDrawerState extends State<NavDrawer> {
     });
     if (_selectedIndex == 0) {
       setState(() {
-        _title = "Taxi";
+        _title = "Course";
       });
     }
     if (_selectedIndex == 1) {
@@ -142,10 +143,23 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   void _initLocationService() {
-    final LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 0,
-    );
+    late LocationSettings locationSettings;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      locationSettings = AndroidSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 0,
+          forceLocationManager: true,
+          intervalDuration: const Duration(seconds: 5));
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      locationSettings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        activityType: ActivityType.automotiveNavigation,
+        distanceFilter: 0,
+        pauseLocationUpdatesAutomatically: true,
+        showBackgroundLocationIndicator: false,
+      );
+    }
+
     positionStream =
         Geolocator.getPositionStream(locationSettings: locationSettings)
             .listen((Position? position) {
@@ -287,7 +301,7 @@ class _NavDrawerState extends State<NavDrawer> {
             ),
             ListTile(
               leading: Icon(Icons.car_repair),
-              title: const Text('Taxi'),
+              title: const Text('Course'),
               selected: _selectedIndex == 0,
               onTap: () {
                 _onItemTapped(0);

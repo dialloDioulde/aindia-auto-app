@@ -230,29 +230,29 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           const SizedBox(height: 8),
           _buildPassword(),
           const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: _formIsValid && !_requestIsRunning
-                ? () {
-                    _loginAccount();
-                  }
-                : null,
-            child: const Text(
-              'Se Connecter',
-              style: TextStyle(
-                fontSize: 20.0,
-                color: Colors.white,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              child: Text(
+                "CONNEXION",
+                style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
+              onPressed: _formIsValid && !_requestIsRunning
+                  ? () {
+                      _loginAccount();
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(32.0),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           InkWell(
             onTap: () {},
             child: const Text(
@@ -264,17 +264,25 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             ),
           ),
           const SizedBox(height: 20),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Register()));
-            },
-            child: const Text(
-              "Pas encore inscrit ? Cliquer ici",
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              child: Text(
+                "INSCRIPTION",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Register()));
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                backgroundColor: Colors.blueGrey,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(32.0),
+                ),
+              ),
             ),
           ),
           if (_requestIsRunning)
