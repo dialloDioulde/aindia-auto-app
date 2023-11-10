@@ -5,7 +5,6 @@
  */
 
 import 'dart:convert';
-import 'package:aindia_auto_app/models/order/order.model.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,10 +15,18 @@ import '../config/config.service.dart';
 class OrderService {
   String apiUrl = ConfigService().apiUrl;
 
-  Future<http.Response> createOrder(OrderModel orderModel) async {
+  Future<http.Response> createOrder(orderModel) async {
     final token = await SharedPreferencesUtil().getToken();
     return await http.post(
         Uri.parse(apiUrl + RouterApiConstants.createOrder),
+        headers: HeadersHeaderDart.headersWithToken(token),
+        body: jsonEncode(orderModel));
+  }
+
+  Future<http.Response> cancelOrder(orderModel) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.put(
+        Uri.parse(apiUrl + RouterApiConstants.cancelOrder + orderModel["_id"]),
         headers: HeadersHeaderDart.headersWithToken(token),
         body: jsonEncode(orderModel));
   }
