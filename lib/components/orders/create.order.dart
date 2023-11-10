@@ -1,11 +1,11 @@
 /**
- * @created 07/11/2023 - 22:34
+ * @created 10/11/2023 - 13:38
  * @project aindia_auto_app
  * @author mamadoudiallo
  */
 
 import 'dart:async';
-import 'package:aindia_auto_app/components/orders/create.order.dart';
+import 'dart:convert';
 import 'package:aindia_auto_app/models/driver-position/driver-position.model.dart';
 import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/utils/constants.dart';
@@ -13,6 +13,7 @@ import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:aindia_auto_app/models/map/map-position.model.dart';
 import 'package:aindia_auto_app/models/order/order.model.dart';
 import 'package:aindia_auto_app/services/order/order.service.dart';
 import 'package:flutter/material.dart';
@@ -28,17 +29,17 @@ import '../../models/order/order-status.enum.dart';
 import '../../services/socket/websocket.service.dart';
 import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
-import '../card/order.driver.card.dart';
-import 'details.order.dart';
 
-class Order extends StatefulWidget {
-  const Order({super.key});
+class CreateOrder extends StatefulWidget {
+  final Function(List) onDataReceived;
+
+  CreateOrder({required this.onDataReceived, super.key});
 
   @override
-  State<Order> createState() => OrderState();
+  State<CreateOrder> createState() => CreateOrderState();
 }
 
-class OrderState extends State<Order> {
+class CreateOrderState extends State<CreateOrder> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
   DriverPositionModel? driverPositionModel;
@@ -209,20 +210,20 @@ class OrderState extends State<Order> {
     }
   }
 
-  Widget _cancelOrderButton() {
+  Widget _launchOrderButton() {
     return Padding(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(16),
       child: ElevatedButton(
         child: Text(
-          "ANNULER",
+          "RECHERCHER",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         onPressed: () {
-          _cancelOrder();
+          _createOrder();
         },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.all(10),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32.0),
@@ -237,17 +238,51 @@ class OrderState extends State<Order> {
     initializeDateFormatting(constants.FR_FR, null);
   }
 
-  void _cancelOrder() async {
-    final orderJson = {
-      '_id': orderData[0]['order']['_id'],
-      'order': orderData[0]['order'],
+  void _createOrder() async {
+    MapPositionModel sourceLocation =
+        MapPositionModel(startLatitude, startLongitude);
+    MapPositionModel destinationLocation =
+        MapPositionModel(endLatitude, endLongitude);
+
+    String currentTime = datesUtil.getCurrentTime(
+        constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+    int datetime = datesUtil.convertDateTimeToMilliseconds(
+        currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+
+    var accountJson = {
+      '_id': accountModel.id,
+      'accountId': accountModel.accountId,
+      'accountType': accountModel.accountType,
+      'phoneNumber': accountModel.phoneNumber,
+      'status': accountModel.status,
     };
-    await orderService.cancelOrder(orderJson).then((response) {
+
+    var orderJson = {
+      'datetime': datetime,
+      'sourceLocation': sourceLocation,
+      'sourceLocationText': _sourceLocationController.text,
+      'destinationLocation': destinationLocation,
+      'destinationLocationText': _destinationController.text,
+      'distance': 00.00,
+      'passenger': accountJson,
+      'price': 00.00,
+      'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
+    };
+
+    await orderService.createOrder(orderJson).then((response) {
+      setState(() {
+        orderData = [];
+        orderDataList = [];
+      });
       if (response.statusCode == 200) {
-        setState(() {
-          orderData = [];
-          orderDataList = [];
-        });
+        var jsonData = jsonDecode(response.body);
+        if (jsonData['orderData'].length > 0) {
+          setState(() {
+            orderData = jsonData['orderData'];
+          });
+        }
+        // Send data to parent
+        widget.onDataReceived(orderData);
       }
       if (response.statusCode == 422) {
         this._resetValidations(false);
@@ -315,18 +350,6 @@ class OrderState extends State<Order> {
     });
   }
 
-  // Callback function to receive data from the child
-  void onDataFromChild(List data) {
-    setState(() {
-      orderData = data;
-      for (var obj in orderData) {
-        setState(() {
-          orderDataList.add(obj);
-        });
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -343,33 +366,24 @@ class OrderState extends State<Order> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: SingleChildScrollView(
-        child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: <Widget>[
-                if (orderDataList.length <= 0)
-                  CreateOrder(
-                    onDataReceived: onDataFromChild,
-                  ),
-                if (orderDataList.length > 0)
-                  Text(
-                    'Taxis Disponibles',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                if (orderDataList.length > 0) OrderDriver(data: orderDataList),
-                if (orderDataList.length > 0)
-                  DetailsOrder(
-                    onDataReceived: onDataFromChild,
-                    orderDataList: orderDataList,
-                  ),
-                if (orderDataList.length > 0) _cancelOrderButton(),
-              ],
-            )),
+      child: Column(
+        children: <Widget>[
+          Text(
+            'Course',
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          currentLocationACPTextField(),
+          SizedBox(height: 10),
+          destinationACPTextField(),
+          if (orderData.length <= 0) SizedBox(height: 12),
+          if (generalValidations() && orderData.length <= 0)
+            _launchOrderButton(),
+        ],
       ),
     );
   }
