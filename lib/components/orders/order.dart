@@ -42,7 +42,7 @@ class OrderState extends State<Order> {
   AccountModel accountModel = AccountModel('');
   OrderModel orderModel = OrderModel('');
   DriverPositionModel? driverPositionModel;
-  List orderFinalData = [];
+  List orderData = [];
   List orderDataList = [];
 
   GoogleMapUtil googleMapUtil = GoogleMapUtil();
@@ -344,7 +344,7 @@ class OrderState extends State<Order> {
             children: [
               Flexible(
                   child: Text(
-                orderFinalData[0]['order']['distance'].toString() + ' KM',
+                orderData[0]['order']['distance'].toString() + ' KM',
                 style: TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -374,7 +374,7 @@ class OrderState extends State<Order> {
     int datetime = datesUtil.convertDateTimeToMilliseconds(
         currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
 
-    var accountData = {
+    var accountJson = {
       '_id': accountModel.id,
       'accountId': accountModel.accountId,
       'accountType': accountModel.accountType,
@@ -382,39 +382,72 @@ class OrderState extends State<Order> {
       'status': accountModel.status,
     };
 
-    var orderData = {
+    var orderJson = {
       'datetime': datetime,
       'sourceLocation': sourceLocation,
       'sourceLocationText': _sourceLocationController.text,
       'destinationLocation': destinationLocation,
       'destinationLocationText': _destinationController.text,
       'distance': 00.00,
-      'passenger': accountData,
+      'passenger': accountJson,
       'price': 00.00,
       'status': orderStatus.orderStatusValue(OrderStatusEnum.PENDING)
     };
 
-    // Web Socket
-    final event = {
-      'action': constants.CREATE_ORDER,
-      'roomId': accountModel.id,
-      'order': orderData,
-    };
-    webSocketService.sendMessageWebSocket(channel, event);
+    await orderService.createOrder(orderJson).then((response) {
+      setState(() {
+        orderData = [];
+        orderDataList = [];
+      });
+      if (response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if (jsonData['orderData'].length > 0) {
+          setState(() {
+            orderData = jsonData['orderData'];
+          });
+          for (var obj in jsonData['orderData']) {
+            setState(() {
+              orderDataList.add(obj);
+            });
+          }
+        }
+      }
+      if (response.statusCode == 422) {
+        this._resetValidations(false);
+        displayMessage('Erreur lors du traitement de la requête', Colors.red);
+      }
+    }).catchError((error) {
+      print(error);
+      this._resetValidations(false);
+      displayMessage('Une erreur du server est survenue', Colors.red);
+    });
   }
 
-  _cancelOrder() {
-    // Web Socket
-    final event = {
-      'action': constants.CANCEL_ORDER,
-      'roomId': accountModel.id,
-      'order': orderFinalData[0]['order'],
+  void _cancelOrder() async {
+    final orderJson = {
+      '_id': orderData[0]['order']['_id'],
+      'order': orderData[0]['order'],
     };
-    setState(() {
-      orderFinalData = [];
-      orderDataList = [];
+    await orderService.cancelOrder(orderJson).then((response) {
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        setState(() {
+          orderData = [];
+          orderDataList = [];
+        });
+      }
+      if (response.statusCode == 422) {
+        this._resetValidations(false);
+        displayMessage('Erreur lors du traitement de la requête', Colors.red);
+      }
+    }).catchError((error) {
+      this._resetValidations(false);
+      displayMessage('Une erreur du server est survenue', Colors.red);
     });
-    webSocketService.sendMessageWebSocket(channel, event);
+  }
+
+  _resetValidations(bool value) {
+    setState(() {});
   }
 
   displayMessage(String messageContent, backgroundColor) {
@@ -446,16 +479,6 @@ class OrderState extends State<Order> {
     _getCurrentLocation();
     _getPolyPoints();
 
-    // Web Socket
-    final event = {
-      'action': constants.CREATE_ROOM,
-      'roomId': accountModel.id,
-    };
-    webSocketService.sendMessageWebSocket(channel, event);
-
-    // Listen to events from the WebSocket
-    _listenWebsockets();
-
     // Fields controller
     _sourceLocationController.addListener(() {
       final newText = _onTextChanged(_sourceLocationController);
@@ -479,53 +502,6 @@ class OrderState extends State<Order> {
     });
   }
 
-  Future<void> _listenWebsockets() async {
-    channel.stream.listen(
-          (message) {
-        print('Received: $message');
-        Map<String, dynamic> jsonData = jsonDecode(message);
-        // Order creation
-        if (jsonData["action"] == constants.ORDER_FROM_SERVER &&
-            jsonData['status'] == 1) {
-          setState(() {
-            orderFinalData = jsonData['orderFinalData'];
-          });
-          if (orderFinalData.length > 0) {
-            for (var obj in jsonData['orderFinalData']) {
-              setState(() {
-                orderDataList.add(obj);
-              });
-            }
-          }
-        }
-      },
-      onDone: () async {
-        print('WebSocket connection closed');
-        _keepWebSocketAlive(channel);
-      },
-      onError: (error) async {
-        print('WebSocket error: $error');
-        _keepWebSocketAlive(channel);
-      },
-    );
-    _keepWebSocketAlive(channel);
-  }
-
-  Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
-      {event = null}) async {
-    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-      if (event == null) {
-        event = {'action': 'KWA', 'message': 'Keep Websockets Alive', 'component': 'order'};
-      }
-      final token = await SharedPreferencesUtil().getToken();
-      if (token.isNotEmptyAndNotNull) {
-        channel.sink.add(jsonEncode(event));
-      } else {
-        heartbeatTimer?.cancel();
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -536,8 +512,6 @@ class OrderState extends State<Order> {
   void dispose() {
     _sourceLocationController.dispose();
     _destinationController.dispose();
-    heartbeatTimer?.cancel();
-    channel.sink.close();
     super.dispose();
   }
 
@@ -549,7 +523,7 @@ class OrderState extends State<Order> {
             padding: const EdgeInsets.all(12.0),
             child: Column(
               children: <Widget>[
-                if (orderFinalData.length <= 0)
+                if (orderData.length <= 0)
                   Text(
                     'Course',
                     style: TextStyle(
@@ -558,15 +532,15 @@ class OrderState extends State<Order> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                if (orderFinalData.length <= 0) SizedBox(height: 10),
-                if (orderFinalData.length <= 0) currentLocationACPTextField(),
-                if (orderFinalData.length <= 0) SizedBox(height: 10),
-                if (orderFinalData.length <= 0) destinationACPTextField(),
-                if (orderFinalData.length <= 0) SizedBox(height: 12),
-                if (generalValidations() && orderFinalData.length <= 0)
+                if (orderData.length <= 0) SizedBox(height: 10),
+                if (orderData.length <= 0) currentLocationACPTextField(),
+                if (orderData.length <= 0) SizedBox(height: 10),
+                if (orderData.length <= 0) destinationACPTextField(),
+                if (orderData.length <= 0) SizedBox(height: 12),
+                if (generalValidations() && orderData.length <= 0)
                   _launchOrderButton(),
                 //
-                if (orderFinalData.length > 0)
+                if (orderData.length > 0)
                   Text(
                     'Taxis Disponibles',
                     style: TextStyle(
@@ -575,13 +549,13 @@ class OrderState extends State<Order> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                if (orderFinalData.length > 0) OrderDriver(data: orderDataList),
-                if (generalValidations() && orderFinalData.length > 0)
+                if (orderData.length > 0) OrderDriver(data: orderDataList),
+                if (generalValidations() && orderData.length > 0)
                   SizedBox(height: 12),
-                if (generalValidations() && orderFinalData.length > 0)
+                if (generalValidations() && orderData.length > 0)
                   _cancelOrderButton(),
                 //
-                if (orderFinalData.length > 0) _orderDetails(),
+                if (orderData.length > 0) _orderDetails(),
               ],
             )),
       ),

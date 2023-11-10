@@ -4,8 +4,6 @@
  * @author mamadoudiallo
  */
 
-import 'dart:ffi';
-
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:flutter/cupertino.dart';
 import '../map/map-position.model.dart';
@@ -14,13 +12,13 @@ class OrderModel extends ChangeNotifier {
   String _id;
   int? datetime;
   MapPositionModel? destinationLocation;
-  Text? destinationLocationText;
+  String? destinationLocationText;
   double? distance;
   AccountModel? driver;
   AccountModel? passenger;
   double? price;
   MapPositionModel? sourceLocation;
-  Text? sourceLocationText;
+  String? sourceLocationText;
   int? status;
 
   OrderModel(
@@ -61,11 +59,11 @@ class OrderModel extends ChangeNotifier {
     this.destinationLocation = destinationLocation;
   }
 
-  Object? get getDestinationLocationText {
-    return destinationLocationText != null ? destinationLocationText : {};
+  String? get getDestinationLocationText {
+    return destinationLocationText != null ? destinationLocationText : '';
   }
 
-  void setDestinationLocationText(Text destinationLocationText) {
+  void setDestinationLocationText(String destinationLocationText) {
     this.destinationLocationText = destinationLocationText;
   }
 
@@ -109,11 +107,11 @@ class OrderModel extends ChangeNotifier {
     this.sourceLocation = sourceLocation;
   }
 
-  Object? get getSourceLocationText {
-    return sourceLocationText != null ? sourceLocationText : {};
+  String? get getSourceLocationText {
+    return sourceLocationText != null ? sourceLocationText : '';
   }
 
-  void setSourceLocationText(Text sourceLocationText) {
+  void setSourceLocationText(String sourceLocationText) {
     this.sourceLocationText = sourceLocationText;
   }
 
