@@ -60,6 +60,8 @@ class OrderState extends State<Order> {
   WebSocketService webSocketService = WebSocketService();
   IOWebSocketChannel channel = WebSocketService().setupWebSocket();
 
+  Timer? heartbeatTimer;
+
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
@@ -452,23 +454,7 @@ class OrderState extends State<Order> {
     webSocketService.sendMessageWebSocket(channel, event);
 
     // Listen to events from the WebSocket
-    channel.stream.listen((message) {
-      Map<String, dynamic> jsonData = jsonDecode(message);
-      // Order creation
-      if (jsonData["action"] == constants.ORDER_FROM_SERVER &&
-          jsonData['status'] == 1) {
-        setState(() {
-          orderFinalData = jsonData['orderFinalData'];
-        });
-        if (orderFinalData.length > 0) {
-          for (var obj in jsonData['orderFinalData']) {
-            setState(() {
-              orderDataList.add(obj);
-            });
-          }
-        }
-      }
-    });
+    _listenWebsockets();
 
     // Fields controller
     _sourceLocationController.addListener(() {
@@ -493,6 +479,53 @@ class OrderState extends State<Order> {
     });
   }
 
+  Future<void> _listenWebsockets() async {
+    channel.stream.listen(
+          (message) {
+        print('Received: $message');
+        Map<String, dynamic> jsonData = jsonDecode(message);
+        // Order creation
+        if (jsonData["action"] == constants.ORDER_FROM_SERVER &&
+            jsonData['status'] == 1) {
+          setState(() {
+            orderFinalData = jsonData['orderFinalData'];
+          });
+          if (orderFinalData.length > 0) {
+            for (var obj in jsonData['orderFinalData']) {
+              setState(() {
+                orderDataList.add(obj);
+              });
+            }
+          }
+        }
+      },
+      onDone: () async {
+        print('WebSocket connection closed');
+        _keepWebSocketAlive(channel);
+      },
+      onError: (error) async {
+        print('WebSocket error: $error');
+        _keepWebSocketAlive(channel);
+      },
+    );
+    _keepWebSocketAlive(channel);
+  }
+
+  Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
+      {event = null}) async {
+    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
+      if (event == null) {
+        event = {'action': 'KWA', 'message': 'Keep Websockets Alive', 'component': 'order'};
+      }
+      final token = await SharedPreferencesUtil().getToken();
+      if (token.isNotEmptyAndNotNull) {
+        channel.sink.add(jsonEncode(event));
+      } else {
+        heartbeatTimer?.cancel();
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -503,6 +536,8 @@ class OrderState extends State<Order> {
   void dispose() {
     _sourceLocationController.dispose();
     _destinationController.dispose();
+    heartbeatTimer?.cancel();
+    channel.sink.close();
     super.dispose();
   }
 

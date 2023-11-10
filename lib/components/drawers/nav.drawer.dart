@@ -117,6 +117,7 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   Future<void> _initializeData() async {
+    channel = WebSocketService().setupWebSocket();
     _datesConfiguration();
     setState(() {
       accountModel = Provider.of<AccountModel>(context, listen: false);
@@ -128,15 +129,15 @@ class _NavDrawerState extends State<NavDrawer> {
           status: accountModel.status,
           token: accountModel.token);
     });
-    // Init  Web Socket
-    final event = {
-      'action': constants.CREATE_ROOM,
-      'roomId': accountModel.id,
-    };
-    webSocketService.sendMessageWebSocket(channel, event);
     if (accountModel.id.isNotEmptyAndNotNull &&
         accountModel.getAccountType! ==
             accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
+      // Init  Web Socket
+      final event = {
+        'action': constants.CREATE_ROOM,
+        'roomId': accountModel.id,
+      };
+      webSocketService.sendMessageWebSocket(channel, event);
       _initLocationService();
     }
     _listenWebsockets();
@@ -182,8 +183,8 @@ class _NavDrawerState extends State<NavDrawer> {
         };
         var driverPositionData = {
           'datetime': datetime,
-          'accountModel': accountData,
-          'positionModel': positionData,
+          'driver': accountData,
+          'position': positionData,
           'status': driverPositionStatus
               .driverPositionStatusValue(DriverPositionStatusEnum.AVAILABLE)
         };
@@ -206,24 +207,15 @@ class _NavDrawerState extends State<NavDrawer> {
   void _listenWebsockets() {
     channel.stream.listen(
       (message) {
-        // Handle incoming WebSocket messages
-        print('Received: $message');
+        print('Received : $message');
       },
       onDone: () async {
-        // Handle WebSocket disconnection
         print('WebSocket connection closed');
-        final token = await SharedPreferencesUtil().getToken();
-        if (token.isNotEmptyAndNotNull) {
-          _keepWebSocketAlive(channel);
-        }
+        _keepWebSocketAlive(channel);
       },
       onError: (error) async {
-        // Handle WebSocket errors
         print('WebSocket error: $error');
-        final token = await SharedPreferencesUtil().getToken();
-        if (token.isNotEmptyAndNotNull) {
-          _keepWebSocketAlive(channel);
-        }
+        _keepWebSocketAlive(channel);
       },
     );
     _keepWebSocketAlive(channel);
@@ -231,11 +223,16 @@ class _NavDrawerState extends State<NavDrawer> {
 
   Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
       {event = null}) async {
-    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
       if (event == null) {
-        event = {'action': 'keepWebsocketsAlive', 'message': 'KWA'};
+        event = {'action': 'KWA', 'message': 'Keep Websockets Alive', 'component': 'nav.drawer'};
       }
-      channel.sink.add(jsonEncode(event));
+      final token = await SharedPreferencesUtil().getToken();
+      if (token.isNotEmptyAndNotNull) {
+        channel.sink.add(jsonEncode(event));
+      } else {
+        heartbeatTimer?.cancel();
+      }
     });
   }
 
