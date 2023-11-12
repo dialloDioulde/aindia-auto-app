@@ -9,6 +9,8 @@ import 'package:aindia_auto_app/models/driver-position/driver-position.model.dar
 import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:google_places_flutter/model/prediction.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -18,6 +20,7 @@ import 'package:aindia_auto_app/services/order/order.service.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:velocity_x/velocity_x.dart';
 import '../../models/account.model.dart';
 import '../../models/order/order-status.enum.dart';
 import '../../utils/dates/dates.util.dart';
@@ -55,10 +58,6 @@ class CreateOrderState extends State<CreateOrder> {
   double? _endLatitude;
   double? _endLongitude;
 
-  List _placeListSL = [];
-  List _placeListDL = [];
-  bool _isListClosedSL = false;
-  bool _isListClosedDL = false;
   bool _requestIsRunning = false;
 
   late TextEditingController _sourceLocationController =
@@ -66,119 +65,95 @@ class CreateOrderState extends State<CreateOrder> {
   late TextEditingController _destinationController =
       TextEditingController(text: '');
 
-  Widget _sourceLocationACPTextField() {
-    return TextField(
-      controller: _sourceLocationController,
-      decoration: InputDecoration(
-          labelText: 'Départ',
-          suffixIcon: _sourceLocationController.text.trim().isNotEmpty
-              ? InkWell(
-                  child: Icon(
-                    Icons.close,
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _sourceLocationController.text = '';
-                      _startLatitude = null;
-                      _startLongitude = null;
-                    });
-                  },
-                )
-              : null,
-          labelStyle: TextStyle(
-            fontSize: 19.0,
-            color: Colors.black,
-          )),
-      style: TextStyle(
-        fontSize: 18.0,
-        color: Colors.black,
-      ),
-      onChanged: (value) async {
-        if (value.trim().isNotEmpty) {
-          // Get place
-          var places = await googleMapUtil.placeAutoComplete(value);
-          if (places.length > 0) {
-            setState(() {
-              _placeListSL = places;
-              _isListClosedSL = false;
-            });
-          }
-          // Get coordinates from address
-          var coordinates =
-              await googleMapUtil.getCoordinatesFromAddress(value);
-          if (coordinates != null) {
-            setState(() {
-              _startLatitude = coordinates['latitude'];
-              _startLongitude = coordinates['longitude'];
-            });
-          }
-        } else {
+  _sourceLocationACPTextField() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 5),
+      child: GooglePlaceAutoCompleteTextField(
+        textEditingController: _sourceLocationController,
+        googleAPIKey: configService.googleApiKey,
+        inputDecoration: InputDecoration(
+          hintText: "Départ",
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+        ),
+        debounceTime: 400,
+        countries: constants.GOOGLE_MAP_COUNTRIES,
+        isLatLngRequired: true,
+        getPlaceDetailWithLatLng: (Prediction prediction) {
           setState(() {
-            _placeListSL = [];
-            _isListClosedSL = false;
-            _startLatitude = null;
-            _startLongitude = null;
+            _startLatitude = double.parse(prediction.lat!);
+            _startLongitude = double.parse(prediction.lng!);
           });
-        }
-      },
+        },
+        itemClick: (Prediction prediction) {
+          _sourceLocationController.text = prediction.description ?? "";
+          _sourceLocationController.selection = TextSelection.fromPosition(
+              TextPosition(offset: prediction.description?.length ?? 0));
+        },
+        seperatedBuilder: Divider(),
+        itemBuilder: (context, index, Prediction prediction) {
+          return Container(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Icon(Icons.location_on),
+                SizedBox(
+                  width: 7,
+                ),
+                Expanded(child: Text("${prediction.description ?? ""}"))
+              ],
+            ),
+          );
+        },
+        isCrossBtnShown: true,
+        // default 600 ms ,
+      ),
     );
   }
 
-  Widget _destinationACPTextField() {
-    return TextField(
-      controller: _destinationController,
-      decoration: InputDecoration(
-          labelText: 'Destination',
-          suffixIcon: _destinationController.text.trim().isNotEmpty
-              ? InkWell(
-                  child: Icon(
-                    Icons.close,
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _destinationController.text = '';
-                      _endLatitude = null;
-                      _endLongitude = null;
-                    });
-                  },
-                )
-              : null,
-          labelStyle: TextStyle(
-            fontSize: 19.0,
-            color: Colors.black,
-          )),
-      style: TextStyle(
-        fontSize: 18.0,
-        color: Colors.black,
-      ),
-      onChanged: (value) async {
-        if (value.trim().isNotEmpty) {
-          // Get place
-          var places = await googleMapUtil.placeAutoComplete(value);
-          if (places.length > 0) {
-            setState(() {
-              _placeListDL = places;
-              _isListClosedDL = false;
-            });
-          }
-          // Get coordinates from address
-          var coordinates =
-              await googleMapUtil.getCoordinatesFromAddress(value);
-          if (coordinates != null) {
-            setState(() {
-              _endLatitude = coordinates['latitude'];
-              _endLongitude = coordinates['longitude'];
-            });
-          }
-        } else {
+  _destinationACPTextField() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 5),
+      child: GooglePlaceAutoCompleteTextField(
+        textEditingController: _destinationController,
+        googleAPIKey: configService.googleApiKey,
+        inputDecoration: InputDecoration(
+          hintText: "Destination",
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+        ),
+        debounceTime: 400,
+        countries: constants.GOOGLE_MAP_COUNTRIES,
+        isLatLngRequired: true,
+        getPlaceDetailWithLatLng: (Prediction prediction) {
           setState(() {
-            _placeListDL = [];
-            _isListClosedDL = false;
-            _endLatitude = null;
-            _endLongitude = null;
+            _endLatitude = double.parse(prediction.lat!);
+            _endLongitude = double.parse(prediction.lng!);
           });
-        }
-      },
+        },
+        itemClick: (Prediction prediction) {
+          _destinationController.text = prediction.description ?? "";
+          _destinationController.selection = TextSelection.fromPosition(
+              TextPosition(offset: prediction.description?.length ?? 0));
+        },
+        seperatedBuilder: Divider(),
+        itemBuilder: (context, index, Prediction prediction) {
+          return Container(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Icon(Icons.location_on),
+                SizedBox(
+                  width: 7,
+                ),
+                Expanded(child: Text("${prediction.description ?? ""}"))
+              ],
+            ),
+          );
+        },
+        isCrossBtnShown: true,
+        // default 600 ms ,
+      ),
     );
   }
 
@@ -203,7 +178,6 @@ class CreateOrderState extends State<CreateOrder> {
       child: Container(
         color: Colors.transparent,
         width: MediaQuery.of(context).size.width,
-        //height: 50,
         child: ElevatedButton(
           child: Text(
             "RECHERCHER",
@@ -319,6 +293,24 @@ class CreateOrderState extends State<CreateOrder> {
     });
     // Map
     _getCurrentLocation();
+
+    // Fields controller
+    _sourceLocationController.addListener(() {
+      if (_sourceLocationController.text.trim().isEmptyOrNull) {
+        setState(() {
+          _startLatitude = null;
+          _startLongitude = null;
+        });
+      }
+    });
+    _destinationController.addListener(() {
+      if (_destinationController.text.trim().isEmptyOrNull) {
+        setState(() {
+          _endLatitude = null;
+          _endLongitude = null;
+        });
+      }
+    });
   }
 
   @override
@@ -349,83 +341,10 @@ class CreateOrderState extends State<CreateOrder> {
           ),
           SizedBox(height: 10),
           _sourceLocationACPTextField(),
-          if (!_isListClosedSL)
-            ListView.builder(
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              itemCount: _placeListSL.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  padding: EdgeInsets.all(11),
-                  child: InkWell(
-                    onTap: () async {
-                      // Re update final values
-                      var coordinates =
-                          await googleMapUtil.getCoordinatesFromAddress(
-                              _sourceLocationController.text);
-                      setState(() {
-                        _startLatitude = coordinates?['latitude'];
-                        _startLongitude = coordinates?['longitude'];
-                        _sourceLocationController.text =
-                            _placeListSL[index]['description'];
-                        _isListClosedSL = true;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on),
-                        SizedBox(
-                          width: 7,
-                        ),
-                        Expanded(
-                            child: Text(_placeListSL[index]['description']))
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          SizedBox(height: 45),
+          SizedBox(height: 20),
           _destinationACPTextField(),
-          if (!_isListClosedDL)
-            ListView.builder(
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              itemCount: _placeListDL.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  padding: EdgeInsets.all(11),
-                  child: InkWell(
-                    onTap: () async {
-                      // Re update final values
-                      var coordinates =
-                          await googleMapUtil.getCoordinatesFromAddress(
-                              _destinationController.text);
-                      setState(() {
-                        _endLatitude = coordinates?['latitude'];
-                        _endLongitude = coordinates?['longitude'];
-                        _destinationController.text =
-                            _placeListDL[index]['description'];
-                        _isListClosedDL = true;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on),
-                        SizedBox(
-                          width: 7,
-                        ),
-                        Expanded(
-                            child: Text(_placeListDL[index]['description']))
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
           SizedBox(height: 30),
           _orderButton(),
-          //if (_generalValidations() && orderData.length <= 0) _orderButton(),
         ],
       ),
     );
