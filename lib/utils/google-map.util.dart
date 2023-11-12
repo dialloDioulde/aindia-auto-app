@@ -4,9 +4,17 @@
  * @author mamadoudiallo
  */
 
+import 'dart:convert';
+
+import 'package:aindia_auto_app/utils/util.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
+import '../services/config/config.service.dart';
 
 class GoogleMapUtil {
+  ConfigService configService = ConfigService();
+
   // Determine the current position of the device.
   // When the location services are not enabled or permissions
   // are denied the `Future` will return an error.
@@ -45,5 +53,32 @@ class GoogleMapUtil {
       double endLatitude, double endLongitude) {
     return Geolocator.distanceBetween(
         startLatitude, startLongitude, endLatitude, endLongitude);
+  }
+
+  Future<List> placeAutoComplete(String query) async {
+    List _placeList = [];
+    Uri uri = Uri.https(
+        "maps.googleapis.com",
+        "maps/api/place/autocomplete/json",
+        {"input": query, "key": configService.googleApiKey});
+
+    var response = await Util.fetchUrl(uri);
+    if (response != null) {
+      _placeList = jsonDecode(response.toString())['predictions'];
+    }
+    return _placeList;
+  }
+
+  Future getCoordinatesFromAddress(String address) async {
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      return {
+        'latitude': locations.first.latitude,
+        'longitude': locations.first.longitude
+      };
+    } catch (error) {
+      print("Error : $error");
+    }
+    return null;
   }
 }

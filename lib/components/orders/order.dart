@@ -212,20 +212,21 @@ class OrderState extends State<Order> {
   Widget _cancelOrderButton() {
     return Padding(
       padding: const EdgeInsets.all(6),
-      child: ElevatedButton(
-        child: Text(
-          "ANNULER",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        onPressed: () {
-          _cancelOrder();
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(10),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
+      child: Container(
+        color: Colors.transparent,
+        width: MediaQuery.of(context).size.width,
+        child: ElevatedButton(
+          child: Text(
+            "ANNULER",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          onPressed: () {
+            _cancelOrder();
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(12),
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
           ),
         ),
       ),
@@ -345,7 +346,7 @@ class OrderState extends State<Order> {
     return Container(
       child: SingleChildScrollView(
         child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               children: <Widget>[
                 if (orderDataList.length <= 0)

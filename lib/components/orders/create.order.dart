@@ -4,7 +4,6 @@
  * @author mamadoudiallo
  */
 
-import 'dart:async';
 import 'dart:convert';
 import 'package:aindia_auto_app/models/driver-position/driver-position.model.dart';
 import 'package:aindia_auto_app/services/config/config.service.dart';
@@ -17,16 +16,10 @@ import 'package:aindia_auto_app/models/map/map-position.model.dart';
 import 'package:aindia_auto_app/models/order/order.model.dart';
 import 'package:aindia_auto_app/services/order/order.service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_places_flutter/google_places_flutter.dart';
-import 'package:google_places_flutter/model/prediction.dart';
-import 'package:velocity_x/velocity_x.dart';
-import 'package:web_socket_channel/io.dart';
 import '../../models/account.model.dart';
 import '../../models/order/order-status.enum.dart';
-import '../../services/socket/websocket.service.dart';
 import '../../utils/dates/dates.util.dart';
 import '../../utils/google-map.util.dart';
 
@@ -57,125 +50,134 @@ class CreateOrderState extends State<CreateOrder> {
 
   OrderStatus orderStatus = OrderStatus();
 
-  // Web Socket
-  WebSocketService webSocketService = WebSocketService();
-  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
-
-  Timer? heartbeatTimer;
-
-  final Completer<GoogleMapController> _controller =
-      Completer<GoogleMapController>();
-
-  GoogleMapController? mapController;
-  LatLng _sourcePosition = LatLng(46.8122, -71.1836);
-  LatLng _destinationPosition = LatLng(46.815412416445625, -71.18197316849692);
-  List<LatLng> polylineCoordinates = [];
-
   double? startLatitude;
   double? startLongitude;
   double? endLatitude;
   double? endLongitude;
+
+  List _placeListSL = [];
+  List _placeListDL = [];
+  bool isListClosedSL = false;
+  bool isListClosedDL = false;
 
   late TextEditingController _sourceLocationController =
       TextEditingController(text: '');
   late TextEditingController _destinationController =
       TextEditingController(text: '');
 
-  String _onTextChanged(fieldController) {
-    return fieldController.text;
-  }
-
-  currentLocationACPTextField() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: GooglePlaceAutoCompleteTextField(
-        textEditingController: _sourceLocationController,
-        googleAPIKey: configService.googleApiKey,
-        inputDecoration: InputDecoration(
-          hintText: "Départ",
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-        ),
-        debounceTime: 400,
-        countries: constants.GOOGLE_MAP_COUNTRIES,
-        isLatLngRequired: true,
-        getPlaceDetailWithLatLng: (Prediction prediction) {
-          setState(() {
-            startLatitude = double.parse(prediction.lat!);
-            startLongitude = double.parse(prediction.lng!);
-          });
-        },
-        itemClick: (Prediction prediction) {
-          _sourceLocationController.text = prediction.description ?? "";
-          _sourceLocationController.selection = TextSelection.fromPosition(
-              TextPosition(offset: prediction.description?.length ?? 0));
-        },
-        seperatedBuilder: Divider(),
-        // OPTIONAL// If you want to customize list view item builder
-        itemBuilder: (context, index, Prediction prediction) {
-          return Container(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Icon(Icons.location_on),
-                SizedBox(
-                  width: 7,
-                ),
-                Expanded(child: Text("${prediction.description ?? ""}"))
-              ],
-            ),
-          );
-        },
-        isCrossBtnShown: true,
-        // default 600 ms ,
+  Widget _sourceLocationACPTextField() {
+    return TextField(
+      controller: _sourceLocationController,
+      decoration: InputDecoration(
+          labelText: 'Départ',
+          suffixIcon: _sourceLocationController.text.trim().isNotEmpty
+              ? InkWell(
+                  child: Icon(
+                    Icons.close,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _sourceLocationController.text = '';
+                      startLatitude = null;
+                      startLongitude = null;
+                    });
+                  },
+                )
+              : null,
+          labelStyle: TextStyle(
+            fontSize: 19.0,
+            color: Colors.black,
+          )),
+      style: TextStyle(
+        fontSize: 18.0,
+        color: Colors.black,
       ),
+      onChanged: (value) async {
+        if (value.trim().isNotEmpty) {
+          // Get place
+          var places = await googleMapUtil.placeAutoComplete(value);
+          if (places.length > 0) {
+            setState(() {
+              _placeListSL = places;
+              isListClosedSL = false;
+            });
+          }
+          // Get coordinates from address
+          var coordinates =
+              await googleMapUtil.getCoordinatesFromAddress(value);
+          if (coordinates != null) {
+            setState(() {
+              startLatitude = coordinates['latitude'];
+              startLongitude = coordinates['longitude'];
+            });
+          }
+        } else {
+          setState(() {
+            _placeListSL = [];
+            isListClosedSL = false;
+            startLatitude = null;
+            startLongitude = null;
+          });
+        }
+      },
     );
   }
 
-  destinationACPTextField() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: GooglePlaceAutoCompleteTextField(
-        textEditingController: _destinationController,
-        googleAPIKey: configService.googleApiKey,
-        inputDecoration: InputDecoration(
-          hintText: "Arrivé",
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-        ),
-        debounceTime: 400,
-        countries: constants.GOOGLE_MAP_COUNTRIES,
-        isLatLngRequired: true,
-        getPlaceDetailWithLatLng: (Prediction prediction) {
-          setState(() {
-            endLatitude = double.parse(prediction.lat!);
-            endLongitude = double.parse(prediction.lng!);
-          });
-        },
-        itemClick: (Prediction prediction) {
-          _destinationController.text = prediction.description ?? "";
-          _destinationController.selection = TextSelection.fromPosition(
-              TextPosition(offset: prediction.description?.length ?? 0));
-        },
-        seperatedBuilder: Divider(),
-        // OPTIONAL// If you want to customize list view item builder
-        itemBuilder: (context, index, Prediction prediction) {
-          return Container(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Icon(Icons.location_on),
-                SizedBox(
-                  width: 7,
-                ),
-                Expanded(child: Text("${prediction.description ?? ""}"))
-              ],
-            ),
-          );
-        },
-        isCrossBtnShown: true,
-        // default 600 ms ,
+  Widget _destinationACPTextField() {
+    return TextField(
+      controller: _destinationController,
+      decoration: InputDecoration(
+          labelText: 'Destination',
+          suffixIcon: _destinationController.text.trim().isNotEmpty
+              ? InkWell(
+                  child: Icon(
+                    Icons.close,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _destinationController.text = '';
+                      endLatitude = null;
+                      endLongitude = null;
+                    });
+                  },
+                )
+              : null,
+          labelStyle: TextStyle(
+            fontSize: 19.0,
+            color: Colors.black,
+          )),
+      style: TextStyle(
+        fontSize: 18.0,
+        color: Colors.black,
       ),
+      onChanged: (value) async {
+        if (value.trim().isNotEmpty) {
+          // Get place
+          var places = await googleMapUtil.placeAutoComplete(value);
+          if (places.length > 0) {
+            setState(() {
+              _placeListDL = places;
+              isListClosedDL = false;
+            });
+          }
+          // Get coordinates from address
+          var coordinates =
+              await googleMapUtil.getCoordinatesFromAddress(value);
+          if (coordinates != null) {
+            setState(() {
+              endLatitude = coordinates['latitude'];
+              endLongitude = coordinates['longitude'];
+            });
+          }
+        } else {
+          setState(() {
+            _placeListDL = [];
+            isListClosedDL = false;
+            endLatitude = null;
+            endLongitude = null;
+          });
+        }
+      },
     );
   }
 
@@ -194,39 +196,25 @@ class CreateOrderState extends State<CreateOrder> {
     });
   }
 
-  void _getPolyPoints() async {
-    const googleApiKey = 'AIzaSyDLKwz0Fih_MKYU5nbn2MmJjGyYzTtug_E';
-    PolylinePoints polylinePoints = PolylinePoints();
-    PolylineResult polylineResult =
-        await polylinePoints.getRouteBetweenCoordinates(
-            googleApiKey,
-            PointLatLng(_sourcePosition.latitude, _sourcePosition.longitude),
-            PointLatLng(
-                _destinationPosition.latitude, _destinationPosition.longitude));
-
-    if (polylineResult.points.isNotEmpty) {
-      polylineResult.points.forEach((PointLatLng point) =>
-          polylineCoordinates.add(LatLng(point.latitude, point.longitude)));
-    }
-  }
-
-  Widget _launchOrderButton() {
+  Widget _orderButton() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: ElevatedButton(
-        child: Text(
-          "RECHERCHER",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        onPressed: () {
-          _createOrder();
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(10),
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
+      child: Container(
+        color: Colors.transparent,
+        width: MediaQuery.of(context).size.width,
+        //height: 50,
+        child: ElevatedButton(
+          child: Text(
+            "RECHERCHER",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          onPressed: () {
+            _createOrder();
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(10),
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
           ),
         ),
       ),
@@ -304,11 +292,13 @@ class CreateOrderState extends State<CreateOrder> {
     );
   }
 
-  bool generalValidations() {
-    return startLatitude != null &&
+  bool _generalValidations() {
+    return _sourceLocationController.text.trim().isNotEmpty &&
+        startLatitude != null &&
         startLongitude != null &&
         endLatitude != null &&
-        endLongitude != null;
+        endLongitude != null &&
+        _destinationController.text.trim().isNotEmpty;
   }
 
   _initializeData() async {
@@ -325,29 +315,6 @@ class CreateOrderState extends State<CreateOrder> {
     });
     // Map
     _getCurrentLocation();
-    _getPolyPoints();
-
-    // Fields controller
-    _sourceLocationController.addListener(() {
-      final newText = _onTextChanged(_sourceLocationController);
-      if (newText.isEmptyOrNull) {
-        setState(() {
-          startLatitude = null;
-          startLongitude = null;
-        });
-        this.generalValidations();
-      }
-    });
-    _destinationController.addListener(() {
-      final newText = _onTextChanged(_destinationController);
-      if (newText.isEmptyOrNull) {
-        setState(() {
-          endLatitude = null;
-          endLongitude = null;
-        });
-        this.generalValidations();
-      }
-    });
   }
 
   @override
@@ -377,12 +344,83 @@ class CreateOrderState extends State<CreateOrder> {
             ),
           ),
           SizedBox(height: 10),
-          currentLocationACPTextField(),
-          SizedBox(height: 10),
-          destinationACPTextField(),
-          if (orderData.length <= 0) SizedBox(height: 12),
-          if (generalValidations() && orderData.length <= 0)
-            _launchOrderButton(),
+          _sourceLocationACPTextField(),
+          if (!isListClosedSL)
+            ListView.builder(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              itemCount: _placeListSL.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                  padding: EdgeInsets.all(11),
+                  child: InkWell(
+                    onTap: () async {
+                      // Re update final values
+                      var coordinates =
+                          await googleMapUtil.getCoordinatesFromAddress(
+                              _sourceLocationController.text);
+                      setState(() {
+                        startLatitude = coordinates['latitude'];
+                        startLongitude = coordinates['longitude'];
+                        _sourceLocationController.text =
+                            _placeListSL[index]['description'];
+                        isListClosedSL = true;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on),
+                        SizedBox(
+                          width: 7,
+                        ),
+                        Expanded(
+                            child: Text(_placeListSL[index]['description']))
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          SizedBox(height: 45),
+          _destinationACPTextField(),
+          if (!isListClosedDL)
+            ListView.builder(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              itemCount: _placeListDL.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                  padding: EdgeInsets.all(11),
+                  child: InkWell(
+                    onTap: () async {
+                      // Re update final values
+                      var coordinates =
+                          await googleMapUtil.getCoordinatesFromAddress(
+                              _destinationController.text);
+                      setState(() {
+                        endLatitude = coordinates['latitude'];
+                        endLongitude = coordinates['longitude'];
+                        _destinationController.text =
+                            _placeListDL[index]['description'];
+                        isListClosedDL = true;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on),
+                        SizedBox(
+                          width: 7,
+                        ),
+                        Expanded(
+                            child: Text(_placeListDL[index]['description']))
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          SizedBox(height: 30),
+          if (_generalValidations() && orderData.length <= 0) _orderButton(),
         ],
       ),
     );
