@@ -50,15 +50,16 @@ class CreateOrderState extends State<CreateOrder> {
 
   OrderStatus orderStatus = OrderStatus();
 
-  double? startLatitude;
-  double? startLongitude;
-  double? endLatitude;
-  double? endLongitude;
+  double? _startLatitude;
+  double? _startLongitude;
+  double? _endLatitude;
+  double? _endLongitude;
 
   List _placeListSL = [];
   List _placeListDL = [];
-  bool isListClosedSL = false;
-  bool isListClosedDL = false;
+  bool _isListClosedSL = false;
+  bool _isListClosedDL = false;
+  bool _requestIsRunning = false;
 
   late TextEditingController _sourceLocationController =
       TextEditingController(text: '');
@@ -78,8 +79,8 @@ class CreateOrderState extends State<CreateOrder> {
                   onTap: () {
                     setState(() {
                       _sourceLocationController.text = '';
-                      startLatitude = null;
-                      startLongitude = null;
+                      _startLatitude = null;
+                      _startLongitude = null;
                     });
                   },
                 )
@@ -99,7 +100,7 @@ class CreateOrderState extends State<CreateOrder> {
           if (places.length > 0) {
             setState(() {
               _placeListSL = places;
-              isListClosedSL = false;
+              _isListClosedSL = false;
             });
           }
           // Get coordinates from address
@@ -107,16 +108,16 @@ class CreateOrderState extends State<CreateOrder> {
               await googleMapUtil.getCoordinatesFromAddress(value);
           if (coordinates != null) {
             setState(() {
-              startLatitude = coordinates['latitude'];
-              startLongitude = coordinates['longitude'];
+              _startLatitude = coordinates['latitude'];
+              _startLongitude = coordinates['longitude'];
             });
           }
         } else {
           setState(() {
             _placeListSL = [];
-            isListClosedSL = false;
-            startLatitude = null;
-            startLongitude = null;
+            _isListClosedSL = false;
+            _startLatitude = null;
+            _startLongitude = null;
           });
         }
       },
@@ -136,8 +137,8 @@ class CreateOrderState extends State<CreateOrder> {
                   onTap: () {
                     setState(() {
                       _destinationController.text = '';
-                      endLatitude = null;
-                      endLongitude = null;
+                      _endLatitude = null;
+                      _endLongitude = null;
                     });
                   },
                 )
@@ -157,7 +158,7 @@ class CreateOrderState extends State<CreateOrder> {
           if (places.length > 0) {
             setState(() {
               _placeListDL = places;
-              isListClosedDL = false;
+              _isListClosedDL = false;
             });
           }
           // Get coordinates from address
@@ -165,16 +166,16 @@ class CreateOrderState extends State<CreateOrder> {
               await googleMapUtil.getCoordinatesFromAddress(value);
           if (coordinates != null) {
             setState(() {
-              endLatitude = coordinates['latitude'];
-              endLongitude = coordinates['longitude'];
+              _endLatitude = coordinates['latitude'];
+              _endLongitude = coordinates['longitude'];
             });
           }
         } else {
           setState(() {
             _placeListDL = [];
-            isListClosedDL = false;
-            endLatitude = null;
-            endLongitude = null;
+            _isListClosedDL = false;
+            _endLatitude = null;
+            _endLongitude = null;
           });
         }
       },
@@ -188,8 +189,8 @@ class CreateOrderState extends State<CreateOrder> {
       double long = position.longitude;
       LatLng location = LatLng(lat, long);
       setState(() {
-        startLatitude = location.latitude;
-        startLongitude = location.longitude;
+        _startLatitude = location.latitude;
+        _startLongitude = location.longitude;
       });
     }).catchError((e) {
       print(e);
@@ -208,9 +209,9 @@ class CreateOrderState extends State<CreateOrder> {
             "RECHERCHER",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          onPressed: () {
+          onPressed: _generalValidations() && orderData.length <= 0 && !_requestIsRunning ? () {
             _createOrder();
-          },
+          } : null,
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),
             backgroundColor: Colors.green,
@@ -227,10 +228,11 @@ class CreateOrderState extends State<CreateOrder> {
   }
 
   void _createOrder() async {
+    this._resetValidations(true);
     MapPositionModel sourceLocation =
-        MapPositionModel(startLatitude, startLongitude);
+        MapPositionModel(_startLatitude, _startLongitude);
     MapPositionModel destinationLocation =
-        MapPositionModel(endLatitude, endLongitude);
+        MapPositionModel(_endLatitude, _endLongitude);
 
     String currentTime = datesUtil.getCurrentTime(
         constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
@@ -283,7 +285,9 @@ class CreateOrderState extends State<CreateOrder> {
   }
 
   _resetValidations(bool value) {
-    setState(() {});
+    setState(() {
+      _requestIsRunning = value;
+    });
   }
 
   displayMessage(String messageContent, backgroundColor) {
@@ -294,10 +298,10 @@ class CreateOrderState extends State<CreateOrder> {
 
   bool _generalValidations() {
     return _sourceLocationController.text.trim().isNotEmpty &&
-        startLatitude != null &&
-        startLongitude != null &&
-        endLatitude != null &&
-        endLongitude != null &&
+        _startLatitude != null &&
+        _startLongitude != null &&
+        _endLatitude != null &&
+        _endLongitude != null &&
         _destinationController.text.trim().isNotEmpty;
   }
 
@@ -345,7 +349,7 @@ class CreateOrderState extends State<CreateOrder> {
           ),
           SizedBox(height: 10),
           _sourceLocationACPTextField(),
-          if (!isListClosedSL)
+          if (!_isListClosedSL)
             ListView.builder(
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),
@@ -360,11 +364,11 @@ class CreateOrderState extends State<CreateOrder> {
                           await googleMapUtil.getCoordinatesFromAddress(
                               _sourceLocationController.text);
                       setState(() {
-                        startLatitude = coordinates['latitude'];
-                        startLongitude = coordinates['longitude'];
+                        _startLatitude = coordinates?['latitude'];
+                        _startLongitude = coordinates?['longitude'];
                         _sourceLocationController.text =
                             _placeListSL[index]['description'];
-                        isListClosedSL = true;
+                        _isListClosedSL = true;
                       });
                     },
                     child: Row(
@@ -383,7 +387,7 @@ class CreateOrderState extends State<CreateOrder> {
             ),
           SizedBox(height: 45),
           _destinationACPTextField(),
-          if (!isListClosedDL)
+          if (!_isListClosedDL)
             ListView.builder(
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),
@@ -398,11 +402,11 @@ class CreateOrderState extends State<CreateOrder> {
                           await googleMapUtil.getCoordinatesFromAddress(
                               _destinationController.text);
                       setState(() {
-                        endLatitude = coordinates['latitude'];
-                        endLongitude = coordinates['longitude'];
+                        _endLatitude = coordinates?['latitude'];
+                        _endLongitude = coordinates?['longitude'];
                         _destinationController.text =
                             _placeListDL[index]['description'];
-                        isListClosedDL = true;
+                        _isListClosedDL = true;
                       });
                     },
                     child: Row(
@@ -420,7 +424,8 @@ class CreateOrderState extends State<CreateOrder> {
               },
             ),
           SizedBox(height: 30),
-          if (_generalValidations() && orderData.length <= 0) _orderButton(),
+          _orderButton(),
+          //if (_generalValidations() && orderData.length <= 0) _orderButton(),
         ],
       ),
     );
