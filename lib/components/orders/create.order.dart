@@ -183,9 +183,13 @@ class CreateOrderState extends State<CreateOrder> {
             "RECHERCHER",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          onPressed: _generalValidations() && orderData.length <= 0 && !_requestIsRunning ? () {
-            _createOrder();
-          } : null,
+          onPressed: _generalValidations() &&
+                  orderData.length <= 0 &&
+                  !_requestIsRunning
+              ? () {
+                  _createOrder();
+                }
+              : null,
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),
             backgroundColor: Colors.green,
@@ -293,7 +297,6 @@ class CreateOrderState extends State<CreateOrder> {
     });
     // Map
     _getCurrentLocation();
-
     // Fields controller
     _sourceLocationController.addListener(() {
       if (_sourceLocationController.text.trim().isEmptyOrNull) {
