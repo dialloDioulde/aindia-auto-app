@@ -6,8 +6,10 @@
 
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/config/config.service.dart';
+import 'package:aindia_auto_app/services/firebase/firebase.api.service.dart';
 import 'package:aindia_auto_app/services/socket/websocket.service.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
@@ -17,13 +19,22 @@ import 'package:web_socket_channel/io.dart';
 import 'components/drawers/nav.drawer.dart';
 import 'components/account/login.dart';
 import 'models/identity/identity.model.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final token = await SharedPreferencesUtil().getToken();
-
   // Files env configuration
-  await ConfigService().loadConfig(envFileName: '.env.production');
+  await ConfigService().loadConfig(envFileName: '.env.dev');
+
+  //**************************************************************************//
+  // Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseApiService().initNotifications();
+  //**************************************************************************//
 
   runApp(MaterialApp(
     localizationsDelegates: [
@@ -69,10 +80,19 @@ class _MyAppState extends State<MyApp> {
     initializeDateFormatting();
   }
 
+  //**************************************************************************//
+  void _notificationHandler() {
+    FirebaseMessaging.onMessage.listen((event) async {
+      await FirebaseApiService().pushNotification(event);
+    });
+  }
+  //**************************************************************************//
+
   @override
   void initState() {
     super.initState();
     _initializeData();
+    _notificationHandler();
   }
 
   @override

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "203654812337",
+    "project_id": "aindia-auto-e607e",
+    "storage_bucket": "aindia-auto-e607e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203654812337:android:0437801e574f3c3d0e0890",
+        "android_client_info": {
+          "package_name": "sn.aindiaauto.aindia_auto_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmJ-P3SndF6PMe0XU_u1LcguILuExZ5kc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
