@@ -28,7 +28,7 @@ class FirebaseApiService {
   static void init() {
     _notification.initialize(
       const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('aindia_auto'), // @drawable/aindia_auto.png
         iOS: DarwinInitializationSettings(),
       ),
     );
