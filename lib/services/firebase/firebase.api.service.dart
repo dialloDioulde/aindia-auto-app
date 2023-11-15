@@ -14,21 +14,13 @@ class FirebaseApiService {
   static final _notification = FlutterLocalNotificationsPlugin();
 
   Future<void> initNotifications() async {
-    NotificationSettings settings =
-        await FirebaseMessaging.instance.requestPermission();
-    print(
-        'User granted permission: ${settings.authorizationStatus == AuthorizationStatus.authorized}');
-
     String? deviceToken = await FirebaseMessaging.instance.getToken();
-    print('Device Token: $deviceToken');
-    // Initialize Settings
-    init();
-  }
+    print('Device Token VALUE : $deviceToken');
 
-  static void init() {
+    // Initialize Settings
     _notification.initialize(
       const InitializationSettings(
-        android: AndroidInitializationSettings('aindia_auto'), // @drawable/aindia_auto.png
+        android: AndroidInitializationSettings('aindia_auto'),
         iOS: DarwinInitializationSettings(),
       ),
     );
