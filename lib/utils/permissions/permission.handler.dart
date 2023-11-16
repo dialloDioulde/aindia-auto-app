@@ -7,17 +7,25 @@
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionHandler {
+  Future<bool> checkPermissions(List<Permission> permissionsToRequest) async {
+    List<bool> mappedList = await Future.wait(permissionsToRequest.map(
+      (permission) async => await permission.status.isGranted,
+    ));
+    List<bool> filteredList =
+        mappedList.where((element) => element == false).toList();
+    return filteredList.length <= 0;
+  }
+
   Future<bool> requestPermissions(List<Permission> permissionsToRequest) async {
-    Map<Permission, PermissionStatus> statuses = await permissionsToRequest.request();
+    Map<Permission, PermissionStatus> statuses =
+        await permissionsToRequest.request();
     bool isGranted = true;
-    statuses.forEach((permission, status) {
-      if (status.isGranted) {
-        print('${permission.toString()} is granted');
-      } else {
-        print('${permission.toString()} is denied');
+    for (var entry in statuses.entries) {
+      PermissionStatus status = entry.value;
+      if (!status.isGranted) {
         isGranted = false;
       }
-    });
+    }
     return isGranted;
   }
 }
