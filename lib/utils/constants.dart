@@ -27,4 +27,6 @@ class Constants {
 
   // Dates Format
   final YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
+
+  final DEVICE_TOKEN = "deviceToken";
 }

@@ -9,6 +9,7 @@ import 'package:aindia_auto_app/components/account/data-privacy.dart';
 import 'package:aindia_auto_app/components/account/register.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
+import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,6 +55,9 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   AccountService accountService = AccountService();
   TokenDeviceService tokenDeviceService = TokenDeviceService();
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
+
+  Constants constants = Constants();
+
   late TextEditingController _phoneNumberController = TextEditingController();
   late TextEditingController _passwordController = TextEditingController();
 
@@ -181,7 +185,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         if (result) {
           // Create or Update device token value in Database
           String? deviceToken = await FirebaseMessaging.instance.getToken();
-          sharedPreferencesUtil.setLocalDataByKey("deviceToken", deviceToken!);
+          sharedPreferencesUtil.setLocalDataByKey(
+              constants.DEVICE_TOKEN, deviceToken!);
           _createOrUpdateDeviceToken(accountModel, deviceToken);
 
           // Manage redirection by account type
