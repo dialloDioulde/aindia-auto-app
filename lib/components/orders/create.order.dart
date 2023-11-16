@@ -251,12 +251,15 @@ class CreateOrderState extends State<CreateOrder> {
         }
         // Send data to parent
         widget.onDataReceived(orderData);
-      }
-      if (response.statusCode == 422) {
+      } else if (response.statusCode == 422) {
+        this._resetValidations(false);
+        displayMessage('Données invalides', Colors.red);
+      } else {
         this._resetValidations(false);
         displayMessage('Erreur lors du traitement de la requête', Colors.red);
       }
     }).catchError((error) {
+      print(error);
       this._resetValidations(false);
       displayMessage('Une erreur du server est survenue', Colors.red);
     });

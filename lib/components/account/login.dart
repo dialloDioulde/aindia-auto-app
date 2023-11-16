@@ -5,17 +5,19 @@
  */
 
 import 'dart:convert';
+import 'package:aindia_auto_app/components/account/data-privacy.dart';
 import 'package:aindia_auto_app/components/account/register.dart';
-import 'package:aindia_auto_app/components/identity/identity.component.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
-import 'package:aindia_auto_app/utils/permissions/permission.handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:velocity_x/velocity_x.dart';
 import '../../models/account-type.enum.dart';
 import '../../models/identity/identity.model.dart';
+import '../../services/permissions/permissions.service.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
+import '../identity/identity.component.dart';
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);
@@ -167,26 +169,33 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         accountModel.identity = identityModel;
         Provider.of<AccountModel>(context, listen: false)
             .updateAccountModel(accountModel);
-        // Permissions handle
-        PermissionHandler permissionHandler = PermissionHandler();
-        final requestPermissionsRes =
-            await permissionHandler.requestPermissions();
-        if (requestPermissionsRes) {
-          displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
-          if (resData['accountType'] ==
-                  accountType.accountTypeValue(AccountTypeEnum.DRIVER) &&
-              resData['identity']?['_id'] == null) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => IdentityComponent()));
+        displayMessage('Bienvenue chez Aindia Auto !', Colors.green);
+
+        // Check if account has accepted all permissions requested
+        PermissionsService permissionsService = PermissionsService();
+        var result = await permissionsService
+            .checkPermissionsByAccountType(accountModel);
+        if (result) {
+          if (accountModel.id.isNotEmptyAndNotNull &&
+              accountModel.getAccountType! ==
+                  accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
+            // Redirect Driver
+            if (accountModel.identity?.id == null) {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => IdentityComponent()));
+            } else {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => NavDrawer()));
+            }
           } else {
+            // Redirect Passenger
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => NavDrawer()));
           }
         } else {
-          displayMessage(
-              "Vous devez accépter les autorisations demandées pour pouvoir utiliser notre application Aindia Auto",
-              Colors.red);
-          _logoutAccount();
+          // If account has not granted all permissions requested we ask again
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => DataPrivacy()));
         }
       } else {
         this._resetValidations(false);
@@ -197,10 +206,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       this._resetValidations(false);
       displayMessage('Une erreur est survenue !', Colors.red);
     });
-  }
-
-  void _logoutAccount() {
-    sharedPreferencesUtil.setLocalDataByKey('token', '');
   }
 
   @override
