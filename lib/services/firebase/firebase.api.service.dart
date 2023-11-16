@@ -14,9 +14,6 @@ class FirebaseApiService {
   static final _notification = FlutterLocalNotificationsPlugin();
 
   Future<void> initNotifications() async {
-    String? deviceToken = await FirebaseMessaging.instance.getToken();
-    print('Device Token VALUE : $deviceToken');
-
     // Initialize Settings
     _notification.initialize(
       const InitializationSettings(

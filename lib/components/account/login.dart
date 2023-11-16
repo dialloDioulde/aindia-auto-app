@@ -9,12 +9,14 @@ import 'package:aindia_auto_app/components/account/data-privacy.dart';
 import 'package:aindia_auto_app/components/account/register.dart';
 import 'package:aindia_auto_app/models/account.model.dart';
 import 'package:aindia_auto_app/services/account.service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 import '../../models/account-type.enum.dart';
 import '../../models/identity/identity.model.dart';
 import '../../services/permissions/permissions.service.dart';
+import '../../services/token-device/token-device.service.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
 import '../identity/identity.component.dart';
@@ -50,6 +52,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   AccountType accountType = AccountType();
 
   AccountService accountService = AccountService();
+  TokenDeviceService tokenDeviceService = TokenDeviceService();
   SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
   late TextEditingController _phoneNumberController = TextEditingController();
   late TextEditingController _passwordController = TextEditingController();
@@ -176,6 +179,12 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         var result = await permissionsService
             .checkPermissionsByAccountType(accountModel);
         if (result) {
+          // Create or Update device token value in Database
+          String? deviceToken = await FirebaseMessaging.instance.getToken();
+          sharedPreferencesUtil.setLocalDataByKey("deviceToken", deviceToken!);
+          _createOrUpdateDeviceToken(accountModel, deviceToken);
+
+          // Manage redirection by account type
           if (accountModel.id.isNotEmptyAndNotNull &&
               accountModel.getAccountType! ==
                   accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
@@ -205,6 +214,21 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       print(error);
       this._resetValidations(false);
       displayMessage('Une erreur est survenue !', Colors.red);
+    });
+  }
+
+  void _createOrUpdateDeviceToken(
+      AccountModel account, String deviceToken) async {
+    var data = {'account': account.id, 'token': deviceToken};
+    await tokenDeviceService.createOrUpdateDeviceToken(data).then((response) {
+      if (response.statusCode == 200) {
+        var body = jsonDecode(response.body);
+      } else {
+        var body = jsonDecode(response.body);
+        print("_createOrUpdateDeviceToken : $body");
+      }
+    }).catchError((error) {
+      print(error);
     });
   }
 

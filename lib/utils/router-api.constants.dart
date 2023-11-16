@@ -15,4 +15,6 @@ class RouterApiConstants {
   static const String createIdentity = '/create-identity';
   static const String updateIdentity = '/update-identity/';
   static const String identity = '/identity/';
+
+  static const String createOrUpdateDeviceToken = '/create-or-update-token-device';
 }
