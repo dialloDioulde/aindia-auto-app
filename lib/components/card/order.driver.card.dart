@@ -14,7 +14,8 @@ class OrderDriver extends StatefulWidget {
   final Function(int, dynamic) onDataReceived;
   List data = [];
 
-  OrderDriver({required this.data, required this.onDataReceived, Key? key}) : super(key: key);
+  OrderDriver({required this.data, required this.onDataReceived, Key? key})
+      : super(key: key);
 
   @override
   _OrderDriverState createState() => _OrderDriverState();
@@ -47,10 +48,6 @@ class _OrderDriverState extends State<OrderDriver> {
   }
 
   Widget cardTemplate(element) {
-    //print(element);
-    final order = element['order'];
-    final driverPosition = element['driverPosition'];
-    final driver = element['driverPosition']['driver'];
     final identity = element['identity'];
 
     return Card(

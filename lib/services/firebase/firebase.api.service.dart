@@ -4,13 +4,19 @@
  * @author mamadoudiallo
  */
 
+import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:timezone/data/latest_all.dart' as timezone;
 import 'package:timezone/timezone.dart' as timezone;
 
+import '../../utils/dates/dates.util.dart';
+
 class FirebaseApiService {
+  Constants constants = Constants();
+  DatesUtil datesUtil = DatesUtil();
+
   static final _notification = FlutterLocalNotificationsPlugin();
 
   Future<void> initNotifications() async {
@@ -26,10 +32,15 @@ class FirebaseApiService {
   pushNotification(
     RemoteMessage message,
   ) async {
-    var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
-      '1935_minka_bouye_thiato',
-      'channel name',
-      channelDescription: 'channel description',
+    String currentTime = datesUtil.getCurrentTime(
+        constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+    int datetime = datesUtil.convertDateTimeToMilliseconds(
+        currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      constants.CHANNEL_ID,
+      constants.CHANNEL_NAME,
+      channelDescription: constants.CHANNEL_DESCRIPTION,
       importance: Importance.max,
       priority: Priority.high,
     );
@@ -38,18 +49,19 @@ class FirebaseApiService {
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
-    await _notification.show(6, message.notification!.title,
+    await _notification.show(datetime, message.notification!.title,
         message.notification!.body, platformChannelSpecifics);
   }
 
   static scheduleNotification() async {
+    Constants constants = Constants();
     timezone.initializeTimeZones();
-    var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
-      '1935_minka_bouye_thiato',
-      'channel name',
-      channelDescription: 'channel description',
-      importance: Importance.max, // set the importance of the notification
-      priority: Priority.high, // set prority
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      constants.CHANNEL_ID,
+      constants.CHANNEL_NAME,
+      channelDescription: constants.CHANNEL_DESCRIPTION,
+      importance: Importance.max,
+      priority: Priority.high,
     );
     var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
     var platformChannelSpecifics = NotificationDetails(

@@ -29,4 +29,7 @@ class Constants {
   final YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
 
   final DEVICE_TOKEN = "deviceToken";
+  final CHANNEL_ID = "1935_minka_bouye_thiato";
+  final CHANNEL_NAME = "Order Send Channel";
+  final CHANNEL_DESCRIPTION = "Order send channel description";
 }
