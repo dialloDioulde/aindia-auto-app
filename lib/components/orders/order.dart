@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'package:aindia_auto_app/components/orders/create.order.dart';
+import 'package:aindia_auto_app/components/orders/process.order.dart';
 import 'package:aindia_auto_app/models/driver-position/driver-position.model.dart';
 import 'package:aindia_auto_app/services/config/config.service.dart';
 import 'package:aindia_auto_app/utils/constants.dart';
@@ -44,6 +45,9 @@ class OrderState extends State<Order> {
   DriverPositionModel? driverPositionModel;
   List orderData = [];
   List orderDataList = [];
+
+  int _orderStep = 1;
+  var _orderDriverSelected;
 
   GoogleMapUtil googleMapUtil = GoogleMapUtil();
   DatesUtil datesUtil = DatesUtil();
@@ -328,6 +332,17 @@ class OrderState extends State<Order> {
     });
   }
 
+  void onDataFromOrderDriver(int value, dynamic orderDriverSelected) {
+    setState(() {
+      _orderStep = value;
+      _orderDriverSelected = orderDriverSelected;
+    });
+  }
+
+  void onDataFromProcessOrder(int value) {
+    print('onDataFromProcessOrder : $value');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -349,11 +364,14 @@ class OrderState extends State<Order> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: <Widget>[
-                if (orderDataList.length <= 0)
+                // Create Order
+                if (_orderStep == 1 && orderDataList.length <= 0)
                   CreateOrder(
                     onDataReceived: onDataFromChild,
                   ),
-                if (orderDataList.length > 0)
+
+                // Order Driver details
+                if (_orderStep == 1 && orderDataList.length > 0)
                   Text(
                     'Taxis Disponibles',
                     style: TextStyle(
@@ -362,13 +380,16 @@ class OrderState extends State<Order> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                if (orderDataList.length > 0) OrderDriver(data: orderDataList),
-                if (orderDataList.length > 0)
+                if (_orderStep == 1 && orderDataList.length > 0) OrderDriver(data: orderDataList, onDataReceived: onDataFromOrderDriver,),
+                if (_orderStep == 1 && orderDataList.length > 0)
                   DetailsOrder(
                     onDataReceived: onDataFromChild,
                     orderDataList: orderDataList,
                   ),
-                if (orderDataList.length > 0) _cancelOrderButton(),
+                if (_orderStep == 1 && orderDataList.length > 0) _cancelOrderButton(),
+
+                // Process Order
+                if (_orderStep == 3) ProcessOrder(orderDriverSelected: _orderDriverSelected, onDataReceived: onDataFromProcessOrder,),
               ],
             )),
       ),

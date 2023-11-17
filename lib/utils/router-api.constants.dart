@@ -10,6 +10,8 @@ class RouterApiConstants {
   static const String createOrder = '/create-order';
   static const String updateOrder = '/update-order';
   static const String cancelOrder = '/cancel-order/';
+  static const String sendOrderToDriver = '/send-order-to-driver';
+
   static const String createOrUpdateDriverPosition = '/create-or-update-driver-position';
 
   static const String createIdentity = '/create-identity';

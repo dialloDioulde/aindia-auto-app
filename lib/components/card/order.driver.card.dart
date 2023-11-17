@@ -11,9 +11,10 @@ import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 
 class OrderDriver extends StatefulWidget {
+  final Function(int, dynamic) onDataReceived;
   List data = [];
 
-  OrderDriver({required this.data, Key? key}) : super(key: key);
+  OrderDriver({required this.data, required this.onDataReceived, Key? key}) : super(key: key);
 
   @override
   _OrderDriverState createState() => _OrderDriverState();
@@ -55,7 +56,10 @@ class _OrderDriverState extends State<OrderDriver> {
     return Card(
         margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
         child: InkWell(
-            onTap: () {},
+            onTap: () {
+              // Send data to parent
+              widget.onDataReceived(3, element);
+            },
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(children: <Widget>[

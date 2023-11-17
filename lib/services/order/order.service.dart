@@ -31,4 +31,12 @@ class OrderService {
         body: jsonEncode(orderModel));
   }
 
+  Future<http.Response> sendOrderToDriver(data) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.post(
+        Uri.parse(apiUrl + RouterApiConstants.sendOrderToDriver),
+        headers: HeadersHeaderDart.headersWithToken(token),
+        body: jsonEncode(data));
+  }
+
 }
