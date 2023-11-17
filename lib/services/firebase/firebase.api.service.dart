@@ -32,10 +32,9 @@ class FirebaseApiService {
   pushNotification(
     RemoteMessage message,
   ) async {
-    String currentTime = datesUtil.getCurrentTime(
-        constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
-    int datetime = datesUtil.convertDateTimeToMilliseconds(
-        currentTime, constants.AFRICA_DAKAR, constants.YYYY_MM_DD_HH_MM_SS);
+    String currentTime =
+        datesUtil.getCurrentTime(constants.AFRICA_DAKAR, constants.HH);
+    int id = int.parse(currentTime);
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       constants.CHANNEL_ID,
@@ -49,7 +48,7 @@ class FirebaseApiService {
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
-    await _notification.show(datetime, message.notification!.title,
+    await _notification.show(id, message.notification!.title,
         message.notification!.body, platformChannelSpecifics);
   }
 

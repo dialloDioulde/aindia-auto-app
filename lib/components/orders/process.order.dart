@@ -4,8 +4,6 @@
  * @author mamadoudiallo
  */
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import '../../models/account.model.dart';
 import '../../services/order/order.service.dart';
@@ -284,20 +282,17 @@ class ProcessOrderState extends State<ProcessOrder> {
   }
 
   void _sendOrderToDriver() async {
-    print('_sendOrderToDriver');
     await orderService
         .sendOrderToDriver(widget.orderDriverSelected)
         .then((response) {
       print(response.statusCode);
       if (response.statusCode == 200) {
-        var body = jsonDecode(response.body);
-        print('body : $body');
         //widget.onDataReceived(4);
       } else {
         _displayMessage('Erreur lors du traitement de la requête', Colors.red);
       }
     }).catchError((error) {
-      print(error);
+      print("sendOrderToDriver : $error");
       _displayMessage('Une erreur du server est survenue', Colors.red);
     });
   }

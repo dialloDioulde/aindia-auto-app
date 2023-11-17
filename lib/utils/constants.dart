@@ -27,6 +27,7 @@ class Constants {
 
   // Dates Format
   final YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
+  final HH = 'HH';
 
   final DEVICE_TOKEN = "deviceToken";
   final CHANNEL_ID = "1935_minka_bouye_thiato";
