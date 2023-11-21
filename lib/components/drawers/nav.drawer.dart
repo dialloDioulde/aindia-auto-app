@@ -62,7 +62,7 @@ class _NavDrawerState extends State<NavDrawer> {
   GoogleMapController? mapController;
   StreamSubscription? positionStream;
 
-  Timer? heartbeatTimer;
+  late Timer pingTimer;
 
   String _title = 'Aindia Auto';
   int _selectedIndex = 0;
@@ -117,7 +117,6 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   Future<void> _initializeData() async {
-    channel = WebSocketService().setupWebSocket();
     _datesConfiguration();
     setState(() {
       accountModel = Provider.of<AccountModel>(context, listen: false);
@@ -140,7 +139,6 @@ class _NavDrawerState extends State<NavDrawer> {
       webSocketService.sendMessageWebSocket(channel, event);
       _initLocationService();
     }
-    _listenWebsockets();
   }
 
   void _initLocationService() {
@@ -211,27 +209,23 @@ class _NavDrawerState extends State<NavDrawer> {
       },
       onDone: () async {
         print('WebSocket connection closed');
-        _keepWebSocketAlive(channel);
+        _keepWebSocketAlive();
       },
       onError: (error) async {
         print('WebSocket error: $error');
-        _keepWebSocketAlive(channel);
+        _keepWebSocketAlive();
       },
     );
-    _keepWebSocketAlive(channel);
   }
 
-  Future<void> _keepWebSocketAlive(IOWebSocketChannel channel,
-      {event = null}) async {
-    heartbeatTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-      if (event == null) {
-        event = {'action': 'KWA', 'message': 'Keep Websockets Alive', 'component': 'nav.drawer'};
-      }
+  _keepWebSocketAlive() async {
+    var event = {'action': 'ping', 'message': 'KWA', 'component': 'nav.drawer'};
+    pingTimer = Timer.periodic(Duration(seconds: 5), (Timer t) async {
       final token = await SharedPreferencesUtil().getToken();
-      if (token.isNotEmptyAndNotNull) {
+      if (token.isNotEmpty) {
         channel.sink.add(jsonEncode(event));
       } else {
-        heartbeatTimer?.cancel();
+        pingTimer.cancel();
       }
     });
   }
@@ -244,14 +238,13 @@ class _NavDrawerState extends State<NavDrawer> {
   void _logoutAccount(context) {
     sharedPreferencesUtil.setLocalDataByKey('token', '');
     positionStream?.cancel();
-    heartbeatTimer?.cancel();
+    pingTimer.cancel();
     // Web Socket
     final event = {
       'action': constants.LEAVE_ROOM,
       'roomId': accountModel.id,
     };
     webSocketService.sendMessageWebSocket(channel, event);
-    webSocketService.closeWebSocket(channel);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const Login()));
   }
@@ -260,13 +253,16 @@ class _NavDrawerState extends State<NavDrawer> {
   void initState() {
     super.initState();
     _initializeData();
+    // Websockets
+    _keepWebSocketAlive();
+    _listenWebsockets();
   }
 
   @override
   void dispose() {
     positionStream?.cancel();
-    heartbeatTimer?.cancel();
-    webSocketService.closeWebSocket(channel);
+    pingTimer.cancel();
+    channel.sink.close();
     super.dispose();
   }
 
