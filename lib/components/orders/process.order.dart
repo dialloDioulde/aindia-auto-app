@@ -167,7 +167,7 @@ class ProcessOrderState extends State<ProcessOrder> {
               Flexible(
                   child: Text(
                 widget.orderDriverSelected['order']['price'].toString() +
-                    'F CFA',
+                    ' F CFA',
                 style: TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -300,7 +300,7 @@ class ProcessOrderState extends State<ProcessOrder> {
   _cancelOrder() async {
     final orderJson = {
       '_id': widget.orderDriverSelected['order']['_id'],
-      'order': widget.orderDriverSelected['order']['order'],
+      'order': widget.orderDriverSelected['order'],
     };
     await orderService.cancelOrder(orderJson);
     widget.onDataReceived(1);

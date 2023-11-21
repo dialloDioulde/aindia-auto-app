@@ -10,7 +10,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:timezone/data/latest_all.dart' as timezone;
 import 'package:timezone/timezone.dart' as timezone;
-
 import '../../utils/dates/dates.util.dart';
 
 class FirebaseApiService {
@@ -19,23 +18,34 @@ class FirebaseApiService {
 
   static final _notification = FlutterLocalNotificationsPlugin();
 
-  Future<void> initNotifications() async {
-    // Initialize Settings
-    _notification.initialize(
+  final InitializationSettings initializationSettings =
       const InitializationSettings(
-        android: AndroidInitializationSettings('aindia_auto'),
-        iOS: DarwinInitializationSettings(),
-      ),
-    );
+    android: AndroidInitializationSettings('aindia_auto'),
+    iOS: DarwinInitializationSettings(),
+  );
+
+  Future<void> initFirebaseMessagingSettings() async {
+    _notification.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
-  pushNotification(
-    RemoteMessage message,
-  ) async {
+  void onDidReceiveLocalNotification(
+    int id,
+    String? title,
+    String? body,
+    String? payload,
+  ) {}
+
+  void onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    var payload = notificationResponse.payload;
+    print('payload : ${payload}');
+  }
+
+  pushNotification(RemoteMessage message, _notification) async {
     String currentTime =
         datesUtil.getCurrentTime(constants.AFRICA_DAKAR, constants.HH);
     int id = int.parse(currentTime);
-
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       constants.CHANNEL_ID,
       constants.CHANNEL_NAME,
@@ -49,7 +59,8 @@ class FirebaseApiService {
       iOS: iOSPlatformChannelSpecifics,
     );
     await _notification.show(id, message.notification!.title,
-        message.notification!.body, platformChannelSpecifics);
+        message.notification!.body, platformChannelSpecifics,
+        payload: message.data.toString());
   }
 
   static scheduleNotification() async {

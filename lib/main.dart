@@ -10,6 +10,7 @@ import 'package:aindia_auto_app/services/firebase/firebase.api.service.dart';
 import 'package:aindia_auto_app/utils/shared-preferences.util.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -26,13 +27,10 @@ void main() async {
   // Files env configuration
   await ConfigService().loadConfig(envFileName: '.env.dev');
 
-  //**************************************************************************//
   // Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseApiService().initNotifications();
-  //**************************************************************************//
 
   runApp(MaterialApp(
     localizationsDelegates: [
@@ -62,6 +60,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   AccountModel accountModel = AccountModel('');
 
+  final _notification = FlutterLocalNotificationsPlugin();
+
   Future<bool> checkTokenStatus(String token) async {
     if (token == '') {
       return false;
@@ -72,21 +72,37 @@ class _MyAppState extends State<MyApp> {
 
   _initializeData() async {
     initializeDateFormatting();
+    // Firebase
+    final InitializationSettings initializationSettings =
+    const InitializationSettings(
+      android: AndroidInitializationSettings('aindia_auto'),
+      iOS: DarwinInitializationSettings(),
+    );
+    _notification.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
-  //**************************************************************************//
-  void _notificationHandler() {
-    FirebaseMessaging.onMessage.listen((event) async {
-      await FirebaseApiService().pushNotification(event);
+  void configureFirebaseMessaging() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await FirebaseApiService().pushNotification(message, _notification);
     });
   }
-  //**************************************************************************//
+
+  onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    var payload = notificationResponse.payload;
+    print('payload : ${payload}');
+
+    // Create a GlobalKey
+    //GlobalKey<NavDrawerState> myWidgetKey = GlobalKey<NavDrawerState>();
+    //myWidgetKey.currentState?.test();
+  }
 
   @override
   void initState() {
     super.initState();
     _initializeData();
-    _notificationHandler();
+    configureFirebaseMessaging();
   }
 
   @override

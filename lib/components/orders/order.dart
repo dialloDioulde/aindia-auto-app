@@ -341,6 +341,12 @@ class OrderState extends State<Order> {
 
   void onDataFromProcessOrder(int value) {
     print('onDataFromProcessOrder : $value');
+    setState(() {
+      _orderStep = value;
+      _orderDriverSelected = null;
+      orderData = [];
+      orderDataList = [];
+    });
   }
 
   @override
