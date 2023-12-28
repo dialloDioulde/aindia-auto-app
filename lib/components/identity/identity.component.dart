@@ -157,9 +157,7 @@ class _IdentityStatefulWidgetState extends State<IdentityStatefulWidget> {
         Provider.of<AccountModel>(context, listen: false)
             .updateAccountModel(accountModel);
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => NavDrawer(channel: widget.channel)));
+            context, MaterialPageRoute(builder: (context) => NavDrawer()));
       } else if (response.statusCode == 422) {
         displayMessage('Erreur, les données sont invalides', Colors.red);
       } else {

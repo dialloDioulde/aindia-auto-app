@@ -14,21 +14,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
-import 'package:web_socket_channel/io.dart';
 import '../../models/account-type.enum.dart';
 import '../../models/identity/identity.model.dart';
 import '../../services/permissions/permissions.service.dart';
-import '../../services/socket/websocket.service.dart';
 import '../../services/token-device/token-device.service.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
 import '../identity/identity.component.dart';
 
 class Login extends StatelessWidget {
-  // Web Socket
-  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
-
-  Login({channel, Key? key}) : super(key: key);
+  Login({Key? key}) : super(key: key);
 
   static const String _title = 'Connexion';
 
@@ -41,16 +36,14 @@ class Login extends StatelessWidget {
               centerTitle: true,
               title: const Text(_title),
               backgroundColor: Colors.green),
-          body: MyStatefulWidget(channel: channel),
+          body: MyStatefulWidget(),
           backgroundColor: Colors.white),
     );
   }
 }
 
 class MyStatefulWidget extends StatefulWidget {
-  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
-
-  MyStatefulWidget({channel, Key? key}) : super(key: key);
+  MyStatefulWidget({Key? key}) : super(key: key);
 
   @override
   State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
@@ -200,24 +193,16 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                   accountType.accountTypeValue(AccountTypeEnum.DRIVER)) {
             // Redirect Driver
             if (accountModel.identity?.id == null) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          IdentityComponent(channel: widget.channel)));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => IdentityComponent()));
             } else {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          NavDrawer(channel: widget.channel)));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => NavDrawer()));
             }
           } else {
             // Redirect Passenger
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => NavDrawer(channel: widget.channel)));
+                context, MaterialPageRoute(builder: (context) => NavDrawer()));
           }
         } else {
           // If account has not granted all permissions requested we ask again
@@ -243,7 +228,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         var body = jsonDecode(response.body);
       } else {
         var body = jsonDecode(response.body);
-        print("_createOrUpdateDeviceToken : $body");
       }
     }).catchError((error) {
       print(error);

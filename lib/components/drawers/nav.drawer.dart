@@ -38,11 +38,7 @@ import '../orders/driver.order.dart';
 import '../orders/order.dart';
 
 class NavDrawer extends StatefulWidget {
-  // Web Socket
-  WebSocketService webSocketService = WebSocketService();
-  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
-
-  NavDrawer({channel, super.key});
+  NavDrawer({super.key});
 
   @override
   State<NavDrawer> createState() => _NavDrawerState();
@@ -160,7 +156,7 @@ class _NavDrawerState extends State<NavDrawer> {
         'action': constants.CREATE_ROOM,
         'roomId': accountModel.id,
       };
-      webSocketService.sendMessageWebSocket(widget.channel, event);
+      webSocketService.sendMessageWebSocket(channel, event);
       _initLocationService();
     }
   }
@@ -215,7 +211,7 @@ class _NavDrawerState extends State<NavDrawer> {
           'roomId': accountModel.id,
           'driverPosition': driverPositionData,
         };
-        webSocketService.sendMessageWebSocket(widget.channel, event);
+        webSocketService.sendMessageWebSocket(channel, event);
       } else {
         _displayMessage(
             'Attention vous devez activer la géolocalisation pour pouvoir travailler !',
@@ -225,7 +221,7 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   void _listenWebsockets() {
-    widget.channel.stream.listen(
+    channel.stream.listen(
       (message) {
         print('Received : $message');
       },
@@ -243,7 +239,7 @@ class _NavDrawerState extends State<NavDrawer> {
     pingTimer = Timer.periodic(Duration(seconds: 5), (Timer t) async {
       final token = await SharedPreferencesUtil().getToken();
       if (token.isNotEmpty) {
-        widget.channel.sink.add(jsonEncode(event));
+        channel.sink.add(jsonEncode(event));
       } else {
         pingTimer.cancel();
       }
@@ -297,7 +293,7 @@ class _NavDrawerState extends State<NavDrawer> {
       'action': constants.LEAVE_ROOM,
       'roomId': accountModel.id,
     };
-    webSocketService.sendMessageWebSocket(widget.channel, event);
+    webSocketService.sendMessageWebSocket(channel, event);
     Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
   }
 
