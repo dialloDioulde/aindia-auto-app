@@ -59,7 +59,7 @@ class _EmployeeDashboardState extends State<Dashboard> {
     };
     webSocketService.sendMessageWebSocket(channel, event);
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const Login()));
+        context, MaterialPageRoute(builder: (context) => Login()));
   }
 
   _displayComponentDynamically() {

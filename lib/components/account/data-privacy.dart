@@ -10,15 +10,19 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'package:web_socket_channel/io.dart';
 import '../../models/account-type.enum.dart';
 import '../../models/account.model.dart';
+import '../../services/socket/websocket.service.dart';
 import '../../utils/permissions/permission.handler.dart';
 import '../../utils/shared-preferences.util.dart';
 import '../drawers/nav.drawer.dart';
 import '../identity/identity.component.dart';
 
 class DataPrivacy extends StatelessWidget {
-  const DataPrivacy({Key? key}) : super(key: key);
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
+  DataPrivacy({Key? key}) : super(key: key);
 
   static const String _title = "Conditions d'utilisation";
 
@@ -31,14 +35,16 @@ class DataPrivacy extends StatelessWidget {
               centerTitle: true,
               title: const Text(_title),
               backgroundColor: Colors.green),
-          body: const MyStatefulWidget(),
+          body: MyStatefulWidget(channel: channel),
           backgroundColor: Colors.white),
     );
   }
 }
 
 class MyStatefulWidget extends StatefulWidget {
-  const MyStatefulWidget({Key? key}) : super(key: key);
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
+  MyStatefulWidget({channel, Key? key}) : super(key: key);
 
   @override
   State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
@@ -79,11 +85,16 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           await permissionHandler.requestPermissions(permissions);
       if (resultBool) {
         if (accountModel.identity?.id == null) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => IdentityComponent()));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      IdentityComponent(channel: widget.channel)));
         } else {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => NavDrawer()));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => NavDrawer(channel: widget.channel)));
         }
       } else {
         _logoutAccount();
@@ -98,7 +109,9 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           await permissionHandler.requestPermissions(permissions);
       if (resultBool) {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => NavDrawer()));
+            context,
+            MaterialPageRoute(
+                builder: (context) => NavDrawer(channel: widget.channel)));
       } else {
         _logoutAccount();
       }

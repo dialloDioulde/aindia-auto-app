@@ -17,6 +17,7 @@ class Constants {
   final ORDER_FROM_SERVER = "orderFromServer";
   final UPDATE_DRIVER_POSITION = "updateDriverPosition";
   final CREATE_ORDER = "createOrder";
+  final CONFIRM_ORDER = "confirmOrder";
   final CANCEL_ORDER = "cancelOrder";
 
   // Language
@@ -33,4 +34,8 @@ class Constants {
   final CHANNEL_ID = "1935_minka_bouye_thiato";
   final CHANNEL_NAME = "Order Send Channel";
   final CHANNEL_DESCRIPTION = "Order send channel description";
+
+  // KEYS
+  final TOKEN = "token";
+  final ORDER_DATA_ID = "orderDataId";
 }

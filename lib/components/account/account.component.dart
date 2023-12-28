@@ -22,7 +22,7 @@ import '../../utils/google-map.util.dart';
 import '../../utils/shared-preferences.util.dart';
 
 class AccountComponent extends StatefulWidget {
-  const AccountComponent({super.key});
+  AccountComponent({super.key});
 
   @override
   State<AccountComponent> createState() => AccountState();
@@ -103,7 +103,7 @@ class AccountState extends State<AccountComponent> {
   @override
   void initState() {
     super.initState();
-    //_initializeData();
+    _initializeData();
   }
 
   @override

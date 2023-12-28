@@ -17,10 +17,17 @@ class OrderService {
 
   Future<http.Response> createOrder(orderModel) async {
     final token = await SharedPreferencesUtil().getToken();
-    return await http.post(
-        Uri.parse(apiUrl + RouterApiConstants.createOrder),
+    return await http.post(Uri.parse(apiUrl + RouterApiConstants.createOrder),
         headers: HeadersHeaderDart.headersWithToken(token),
         body: jsonEncode(orderModel));
+  }
+
+  Future<http.Response> getOrder(orderModelId) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.get(
+      Uri.parse(apiUrl + RouterApiConstants.order + orderModelId),
+      headers: HeadersHeaderDart.headersWithToken(token),
+    );
   }
 
   Future<http.Response> cancelOrder(orderModel) async {
@@ -39,4 +46,19 @@ class OrderService {
         body: jsonEncode(data));
   }
 
+  Future<http.Response> acceptOrder(orderDataModel) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.put(
+        Uri.parse(apiUrl + RouterApiConstants.acceptOrder + orderDataModel["orderDataId"]),
+        headers: HeadersHeaderDart.headersWithToken(token),
+        body: jsonEncode(orderDataModel));
+  }
+
+  Future<http.Response> rejectOrder(orderDataModel) async {
+    final token = await SharedPreferencesUtil().getToken();
+    return await http.patch(
+        Uri.parse(apiUrl + RouterApiConstants.rejectOrder + orderDataModel["orderDataId"]),
+        headers: HeadersHeaderDart.headersWithToken(token),
+        body: jsonEncode(orderDataModel));
+  }
 }

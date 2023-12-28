@@ -36,7 +36,7 @@ class ProcessOrderState extends State<ProcessOrder> {
             children: [
               Flexible(
                   child: Text(
-                'Svp, veuillez patienter pendant que nous vous mettons en relation avec le chauffeur.',
+                'Svp, veuillez patienter pendant que nous vous mettions en relation avec le chauffeur.',
                 style: TextStyle(
                   fontSize: 18.0,
                   color: Colors.black,
@@ -118,7 +118,7 @@ class ProcessOrderState extends State<ProcessOrder> {
             children: [
               Flexible(
                   child: Text(
-                'Distance entre vous',
+                'Distance entre vous :',
                 style: TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -166,8 +166,7 @@ class ProcessOrderState extends State<ProcessOrder> {
               )),
               Flexible(
                   child: Text(
-                widget.orderDriverSelected['order']['price'].toString() +
-                    ' F CFA',
+                widget.orderDriverSelected['price'].toString() + ' F CFA',
                 style: TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -287,7 +286,6 @@ class ProcessOrderState extends State<ProcessOrder> {
         .then((response) {
       print(response.statusCode);
       if (response.statusCode == 200) {
-        //widget.onDataReceived(4);
       } else {
         _displayMessage('Erreur lors du traitement de la requête', Colors.red);
       }

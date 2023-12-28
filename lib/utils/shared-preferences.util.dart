@@ -21,7 +21,7 @@ class SharedPreferencesUtil {
     preferences.setString('$key', value);
   }
 
-  Future getLocalDataByKey(String key) async {
+  Future<String> getLocalDataByKey(String key) async {
     preferences = await SharedPreferences.getInstance();
     return preferences.getString(key) ?? '';
   }

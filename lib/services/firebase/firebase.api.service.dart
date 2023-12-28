@@ -8,15 +8,15 @@ import 'package:aindia_auto_app/utils/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'package:timezone/data/latest_all.dart' as timezone;
-import 'package:timezone/timezone.dart' as timezone;
 import '../../utils/dates/dates.util.dart';
+import '../../utils/shared-preferences.util.dart';
 
 class FirebaseApiService {
   Constants constants = Constants();
   DatesUtil datesUtil = DatesUtil();
+  SharedPreferencesUtil sharedPreferencesUtil = SharedPreferencesUtil();
 
-  static final _notification = FlutterLocalNotificationsPlugin();
+  /*static final _notification = FlutterLocalNotificationsPlugin();
 
   final InitializationSettings initializationSettings =
       const InitializationSettings(
@@ -39,8 +39,7 @@ class FirebaseApiService {
   void onDidReceiveNotificationResponse(
       NotificationResponse notificationResponse) async {
     var payload = notificationResponse.payload;
-    print('payload : ${payload}');
-  }
+  }*/
 
   pushNotification(RemoteMessage message, _notification) async {
     String currentTime =
@@ -58,34 +57,10 @@ class FirebaseApiService {
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
+    /*sharedPreferencesUtil.setLocalDataByKey(
+        constants.ORDER_DATA_ID, message.data["orderDataId"]);*/
     await _notification.show(id, message.notification!.title,
         message.notification!.body, platformChannelSpecifics,
         payload: message.data.toString());
-  }
-
-  static scheduleNotification() async {
-    Constants constants = Constants();
-    timezone.initializeTimeZones();
-    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      constants.CHANNEL_ID,
-      constants.CHANNEL_NAME,
-      channelDescription: constants.CHANNEL_DESCRIPTION,
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-    await _notification.zonedSchedule(
-      1,
-      "notification title",
-      'Message goes here',
-      timezone.TZDateTime.now(timezone.local).add(const Duration(seconds: 10)),
-      platformChannelSpecifics,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
   }
 }

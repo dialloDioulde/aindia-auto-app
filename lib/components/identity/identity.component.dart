@@ -11,11 +11,15 @@ import 'package:aindia_auto_app/models/identity/identity.model.dart';
 import 'package:aindia_auto_app/services/identity/identity.service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:web_socket_channel/io.dart';
 
 import '../../models/account.model.dart';
+import '../../services/socket/websocket.service.dart';
 
 class IdentityComponent extends StatelessWidget {
-  const IdentityComponent({Key? key}) : super(key: key);
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
+  IdentityComponent({channel, Key? key}) : super(key: key);
 
   static const String _title = 'Profile';
 
@@ -28,14 +32,18 @@ class IdentityComponent extends StatelessWidget {
               centerTitle: true,
               title: const Text(_title),
               backgroundColor: Colors.green),
-          body: const IdentityStatefulWidget(),
+          body: IdentityStatefulWidget(
+            channel: channel,
+          ),
           backgroundColor: Colors.white),
     );
   }
 }
 
 class IdentityStatefulWidget extends StatefulWidget {
-  const IdentityStatefulWidget({Key? key}) : super(key: key);
+  IOWebSocketChannel channel = WebSocketService().setupWebSocket();
+
+  IdentityStatefulWidget({channel, Key? key}) : super(key: key);
 
   @override
   State<IdentityStatefulWidget> createState() => _IdentityStatefulWidgetState();
@@ -149,7 +157,9 @@ class _IdentityStatefulWidgetState extends State<IdentityStatefulWidget> {
         Provider.of<AccountModel>(context, listen: false)
             .updateAccountModel(accountModel);
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => NavDrawer()));
+            context,
+            MaterialPageRoute(
+                builder: (context) => NavDrawer(channel: widget.channel)));
       } else if (response.statusCode == 422) {
         displayMessage('Erreur, les données sont invalides', Colors.red);
       } else {
